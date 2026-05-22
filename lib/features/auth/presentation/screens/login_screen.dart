@@ -27,9 +27,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
-    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _animController, curve: Curves.easeOut),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
@@ -47,10 +48,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
-    await ref.read(authProvider.notifier).login(
-      email: _emailController.text.trim(),
-      password: _passwordController.text,
-    );
+    await ref
+        .read(authProvider.notifier)
+        .login(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        );
   }
 
   @override
@@ -66,7 +69,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             content: Text(next.errorMessage!),
             backgroundColor: AppTheme.danger,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
             margin: const EdgeInsets.all(16),
           ),
         );
@@ -79,7 +84,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [AppTheme.primaryDark, AppTheme.primary, AppTheme.primaryLight],
+            colors: [
+              AppTheme.primaryDark,
+              AppTheme.primary,
+              AppTheme.primaryLight,
+            ],
           ),
         ),
         child: SafeArea(
@@ -118,17 +127,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                             children: [
                               Text(
                                 'Masuk ke Akun Anda',
-                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  color: AppTheme.textPrimary,
-                                ),
+                                style: Theme.of(context).textTheme.headlineSmall
+                                    ?.copyWith(color: AppTheme.textPrimary),
                                 textAlign: TextAlign.center,
                               ),
                               const SizedBox(height: 6),
                               Text(
                                 'Gunakan akun yang terdaftar di sistem pondok',
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: AppTheme.textSecondary,
-                                ),
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(color: AppTheme.textSecondary),
                                 textAlign: TextAlign.center,
                               ),
                               const SizedBox(height: 28),
@@ -140,11 +147,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                 enabled: !isLoading,
                                 decoration: const InputDecoration(
                                   labelText: 'Email',
-                                  prefixIcon: Icon(Icons.email_outlined, color: AppTheme.primary),
+                                  prefixIcon: Icon(
+                                    Icons.email_outlined,
+                                    color: AppTheme.primary,
+                                  ),
                                 ),
                                 validator: (v) {
-                                  if (v == null || v.trim().isEmpty) return 'Email tidak boleh kosong';
-                                  if (!v.contains('@')) return 'Format email tidak valid';
+                                  if (v == null || v.trim().isEmpty)
+                                    return 'Email tidak boleh kosong';
+                                  if (!v.contains('@'))
+                                    return 'Format email tidak valid';
                                   return null;
                                 },
                               ),
@@ -157,18 +169,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                 enabled: !isLoading,
                                 decoration: InputDecoration(
                                   labelText: 'Password',
-                                  prefixIcon: const Icon(Icons.lock_outline, color: AppTheme.primary),
+                                  prefixIcon: const Icon(
+                                    Icons.lock_outline,
+                                    color: AppTheme.primary,
+                                  ),
                                   suffixIcon: IconButton(
                                     icon: Icon(
-                                      _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                                      _obscurePassword
+                                          ? Icons.visibility_outlined
+                                          : Icons.visibility_off_outlined,
                                       color: AppTheme.textSecondary,
                                     ),
-                                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                                    onPressed: () => setState(
+                                      () =>
+                                          _obscurePassword = !_obscurePassword,
+                                    ),
                                   ),
                                 ),
                                 validator: (v) {
-                                  if (v == null || v.isEmpty) return 'Password tidak boleh kosong';
-                                  if (v.length < 6) return 'Password minimal 6 karakter';
+                                  if (v == null || v.isEmpty)
+                                    return 'Password tidak boleh kosong';
+                                  if (v.length < 6)
+                                    return 'Password minimal 6 karakter';
                                   return null;
                                 },
                                 onFieldSubmitted: (_) => _handleLogin(),
@@ -181,7 +203,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                 child: ElevatedButton(
                                   onPressed: isLoading ? null : _handleLogin,
                                   style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 16,
+                                    ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
@@ -206,9 +230,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                       const SizedBox(height: 24),
                       Text(
                         'Hubungi admin pondok jika belum memiliki akun',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.white70,
-                        ),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodySmall?.copyWith(color: Colors.white70),
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -247,7 +271,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         ),
         const SizedBox(height: 16),
         const Text(
-          'PONDOK MOBILE',
+          'SMART PANYEPPEN',
           style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 24,
@@ -258,7 +282,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         ),
         const SizedBox(height: 6),
         const Text(
-          'Sistem Manajemen Pondok Pesantren',
+          'Sistem Manajemen Administrasi Pondok Pesantren',
           style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 13,

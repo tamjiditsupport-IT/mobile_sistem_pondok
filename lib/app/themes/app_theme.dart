@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   // ─── Color Palette ────────────────────────────────────────────────────────
-  static const Color primary = Color(0xFF1A5276);      // Deep Blue (Pondok feel)
+  static const Color primary = Color(0xFF1A5276);
   static const Color primaryDark = Color(0xFF154360);
   static const Color primaryLight = Color(0xFF2E86C1);
-  static const Color secondary = Color(0xFF27AE60);    // Green (Islamic)
+  static const Color secondary = Color(0xFF27AE60);
   static const Color secondaryLight = Color(0xFF2ECC71);
-  static const Color accent = Color(0xFFF39C12);       // Gold
+  static const Color accent = Color(0xFFF39C12);
   static const Color danger = Color(0xFFE74C3C);
   static const Color warning = Color(0xFFF39C12);
   static const Color success = Color(0xFF27AE60);
@@ -20,7 +19,6 @@ class AppTheme {
   static const Color textSecondary = Color(0xFF7F8C8D);
   static const Color dividerColor = Color(0xFFECF0F1);
 
-  // Dark mode
   static const Color backgroundDark = Color(0xFF0D1117);
   static const Color surfaceDark = Color(0xFF161B22);
   static const Color cardDark = Color(0xFF21262D);
@@ -37,7 +35,7 @@ class AppTheme {
         surface: surfaceLight,
       ),
       scaffoldBackgroundColor: backgroundLight,
-      textTheme: _textTheme(Brightness.light),
+      fontFamily: 'Poppins',
       appBarTheme: const AppBarTheme(
         backgroundColor: primary,
         foregroundColor: Colors.white,
@@ -50,10 +48,10 @@ class AppTheme {
           color: Colors.white,
         ),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: surfaceLight,
         elevation: 2,
-        shadowColor: Colors.black.withOpacity(0.08),
+        shadowColor: Color.fromRGBO(0, 0, 0, 0.08),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
@@ -75,14 +73,14 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: Colors.grey.shade50,
+        fillColor: const Color(0xFFF8F9FA),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderSide: const BorderSide(color: Color(0xFFDEE2E6)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderSide: const BorderSide(color: Color(0xFFDEE2E6)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
@@ -108,7 +106,7 @@ class AppTheme {
         ),
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: primary.withOpacity(0.1),
+        backgroundColor: const Color.fromRGBO(26, 82, 118, 0.1),
         labelStyle: const TextStyle(color: primary, fontFamily: 'Poppins', fontSize: 12),
         side: BorderSide.none,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
@@ -117,6 +115,7 @@ class AppTheme {
         color: dividerColor,
         thickness: 1,
       ),
+      textTheme: _textTheme(Brightness.light),
     );
   }
 
@@ -132,7 +131,7 @@ class AppTheme {
         surface: surfaceDark,
       ),
       scaffoldBackgroundColor: backgroundDark,
-      textTheme: _textTheme(Brightness.dark),
+      fontFamily: 'Poppins',
       appBarTheme: const AppBarTheme(
         backgroundColor: surfaceDark,
         foregroundColor: Colors.white,
@@ -145,10 +144,10 @@ class AppTheme {
           color: Colors.white,
         ),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: cardDark,
         elevation: 2,
-        shadowColor: Colors.black.withOpacity(0.3),
+        shadowColor: const Color.fromRGBO(0, 0, 0, 0.3),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
@@ -168,11 +167,15 @@ class AppTheme {
           ),
         ),
       ),
+      textTheme: _textTheme(Brightness.dark),
     );
   }
 
   static TextTheme _textTheme(Brightness brightness) {
     final color = brightness == Brightness.light ? textPrimary : Colors.white;
+    final dimColor = brightness == Brightness.light
+        ? const Color.fromRGBO(28, 40, 51, 0.7)
+        : const Color.fromRGBO(255, 255, 255, 0.7);
     return TextTheme(
       headlineLarge: TextStyle(fontFamily: 'Poppins', fontSize: 28, fontWeight: FontWeight.w700, color: color),
       headlineMedium: TextStyle(fontFamily: 'Poppins', fontSize: 22, fontWeight: FontWeight.w700, color: color),
@@ -181,7 +184,7 @@ class AppTheme {
       titleMedium: TextStyle(fontFamily: 'Poppins', fontSize: 14, fontWeight: FontWeight.w500, color: color),
       bodyLarge: TextStyle(fontFamily: 'Poppins', fontSize: 14, color: color),
       bodyMedium: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: color),
-      bodySmall: TextStyle(fontFamily: 'Poppins', fontSize: 12, color: color.withOpacity(0.7)),
+      bodySmall: TextStyle(fontFamily: 'Poppins', fontSize: 12, color: dimColor),
       labelLarge: TextStyle(fontFamily: 'Poppins', fontSize: 13, fontWeight: FontWeight.w600, color: color),
     );
   }

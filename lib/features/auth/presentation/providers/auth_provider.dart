@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../data/repositories/auth_repository.dart';
-import '../data/models/auth_user.dart';
+import '../../data/repositories/auth_repository.dart';
+import '../../data/models/auth_user.dart';
 
 // ─── Auth State ───────────────────────────────────────────────────────────────
 enum AuthStatus { initial, loading, authenticated, unauthenticated, error }

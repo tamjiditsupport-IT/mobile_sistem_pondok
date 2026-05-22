@@ -7,6 +7,9 @@ import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/dashboard/presentation/screens/main_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/profil/presentation/screens/profil_screen.dart';
+import '../../features/keuangan/presentation/screens/keuangan_screen.dart';
+import '../../features/santri/presentation/screens/santri_screen.dart';
+import '../../features/kamtib/presentation/screens/kamtib_screen.dart';
 
 // ─── Route Names ──────────────────────────────────────────────────────────────
 class AppRoutes {
@@ -66,17 +69,17 @@ final routerProvider = Provider<GoRouter>((ref) {
           // ── Keuangan ────────────────────────────────────────────────────
           GoRoute(
             path: AppRoutes.keuangan,
-            builder: (context, state) => const _KeuanganScreen(),
+            builder: (context, state) => const KeuanganScreen(),
           ),
           // ── Santri ──────────────────────────────────────────────────────
           GoRoute(
             path: AppRoutes.santri,
-            builder: (context, state) => const _SantriScreen(),
+            builder: (context, state) => const SantriScreen(),
           ),
           // ── Kamtib ──────────────────────────────────────────────────────
           GoRoute(
             path: AppRoutes.kamtib,
-            builder: (context, state) => const _KamtibScreen(),
+            builder: (context, state) => const KamtibScreen(),
           ),
           // ── Profil ──────────────────────────────────────────────────────
           GoRoute(
@@ -122,111 +125,4 @@ class _SplashScreen extends StatelessWidget {
   }
 }
 
-// ─── Placeholder Screens (akan dikembangkan selanjutnya) ─────────────────────
-
-class _KeuanganScreen extends StatelessWidget {
-  const _KeuanganScreen();
-  @override
-  Widget build(BuildContext context) => _ComingSoonPage(
-    title: 'Keuangan',
-    icon: Icons.account_balance_wallet_rounded,
-    description: 'Lihat saldo, riwayat transaksi, tagihan, dan top-up rekening santri.',
-  );
-}
-
-class _SantriScreen extends StatelessWidget {
-  const _SantriScreen();
-  @override
-  Widget build(BuildContext context) => _ComingSoonPage(
-    title: 'Manajemen Santri',
-    icon: Icons.people_rounded,
-    description: 'Data santri, informasi detail, dan riwayat akademik.',
-  );
-}
-
-class _KamtibScreen extends StatelessWidget {
-  const _KamtibScreen();
-  @override
-  Widget build(BuildContext context) => _ComingSoonPage(
-    title: 'Kamtib',
-    icon: Icons.shield_rounded,
-    description: 'Perizinan santri, pelanggaran, sanksi, dan laporan.',
-  );
-}
-
-/// Halaman placeholder yang lebih elegan dari sekedar teks
-class _ComingSoonPage extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  final String description;
-
-  const _ComingSoonPage({
-    required this.title,
-    required this.icon,
-    required this.description,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: AppTheme.primary.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, size: 56, color: AppTheme.primary),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                title,
-                style: Theme.of(context).textTheme.headlineSmall,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                description,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppTheme.textSecondary,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 32),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                decoration: BoxDecoration(
-                  color: AppTheme.accent.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppTheme.accent.withValues(alpha: 0.3)),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.construction_rounded, color: AppTheme.accent, size: 16),
-                    SizedBox(width: 8),
-                    Text(
-                      'Segera hadir di versi berikutnya',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 12,
-                        color: AppTheme.accent,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
+// ─── End of Routes ────────────────────────────────────────────────────────────

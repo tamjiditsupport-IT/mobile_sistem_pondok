@@ -56,6 +56,7 @@ class SmptApiClient {
           responseHeader: false,
           error: true,
           compact: true,
+          maxWidth: 90,
         ),
       );
       return true;

@@ -52,7 +52,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         .read(authProvider.notifier)
         .login(
           email: _emailController.text.trim(),
-          password: _passwordController.text,
+          password: _passwordController.text.trim(),
         );
   }
 
@@ -264,14 +264,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             ],
           ),
           child: const Icon(
-            Icons.mosque_rounded,
+            Icons.school_rounded,
             size: 50,
             color: AppTheme.primary,
           ),
         ),
         const SizedBox(height: 16),
         const Text(
-          'SMART PANYEPPEN',
+          'SMARTMU',
           style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 24,
@@ -282,12 +282,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         ),
         const SizedBox(height: 6),
         const Text(
-          'Sistem Manajemen Administrasi Pondok Pesantren',
+          'Sistem Manajemen Administrasi Pondok Pesantren \n Miftahul Ulum Panyeppen ',
           style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 13,
             color: Colors.white70,
           ),
+          textAlign: TextAlign.center,
         ),
       ],
     );

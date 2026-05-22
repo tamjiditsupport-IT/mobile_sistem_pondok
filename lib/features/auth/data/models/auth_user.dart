@@ -25,10 +25,10 @@ class AuthUser {
       id: json['id'] ?? 0,
       name: json['name'] ?? '',
       email: json['email'] ?? '',
-      role: json['role']?['name'] ?? json['role'],
-      photo: json['photo'],
-      nis: json['nis'],
-      nip: json['nip'],
+      role: json['role']?['name'] ?? json['role'] ?? (json['roles'] != null && (json['roles'] as List).isNotEmpty ? json['roles'][0]['name'] : null),
+      photo: json['photo'] ?? json['profile']?['photo'] ?? json['student']?['photo'] ?? json['staff']?['photo'],
+      nis: json['nis'] ?? json['student']?['nis'] ?? json['profile']?['nis'],
+      nip: json['nip'] ?? json['staff']?['nip'] ?? json['profile']?['nip'],
       token: token,
     );
   }

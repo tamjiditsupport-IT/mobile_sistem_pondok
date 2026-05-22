@@ -21,8 +21,8 @@ class AppConstants {
   static const String userRoleKey = 'user_role';
 
   // ─── Timeouts ─────────────────────────────────────────────────────────────
-  static const Duration connectTimeout = Duration(seconds: 15);
-  static const Duration receiveTimeout = Duration(seconds: 30);
+  static const Duration connectTimeout = Duration(seconds: 5);
+  static const Duration receiveTimeout = Duration(seconds: 10);
 
   // ─── Pagination ───────────────────────────────────────────────────────────
   static const int defaultPageSize = 15;

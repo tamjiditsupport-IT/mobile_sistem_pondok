@@ -1,46 +1,48 @@
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../constants/app_constants.dart';
 
-/// Service untuk menyimpan data sensitif (JWT token, user info)
-/// menggunakan enkripsi native platform (Keystore/Keychain).
+/// Fallback menggunakan SharedPreferences karena bug Android Emulator Keystore
 class SecureStorageService {
-  static const FlutterSecureStorage _storage = FlutterSecureStorage(
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
-    iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
-  );
-
   // ─── Token ────────────────────────────────────────────────────────────────
   static Future<void> saveToken(String token) async {
-    await _storage.write(key: AppConstants.tokenKey, value: token);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(AppConstants.tokenKey, token);
   }
 
   static Future<String?> getToken() async {
-    return await _storage.read(key: AppConstants.tokenKey);
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(AppConstants.tokenKey);
   }
 
   static Future<void> deleteToken() async {
-    await _storage.delete(key: AppConstants.tokenKey);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(AppConstants.tokenKey);
   }
 
   // ─── User Data ────────────────────────────────────────────────────────────
   static Future<void> saveUserData(String json) async {
-    await _storage.write(key: AppConstants.userKey, value: json);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(AppConstants.userKey, json);
   }
 
   static Future<String?> getUserData() async {
-    return await _storage.read(key: AppConstants.userKey);
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(AppConstants.userKey);
   }
 
   static Future<void> saveUserRole(String role) async {
-    await _storage.write(key: AppConstants.userRoleKey, value: role);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(AppConstants.userRoleKey, role);
   }
 
   static Future<String?> getUserRole() async {
-    return await _storage.read(key: AppConstants.userRoleKey);
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(AppConstants.userRoleKey);
   }
 
   // ─── Clear All ────────────────────────────────────────────────────────────
   static Future<void> clearAll() async {
-    await _storage.deleteAll();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
   }
 }

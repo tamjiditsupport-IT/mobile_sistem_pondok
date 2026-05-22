@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/repositories/keuangan_repository.dart';
 import '../../data/models/bank_models.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../auth/data/models/auth_user.dart';
 
 // ─── State ────────────────────────────────────────────────────────────────────
 enum KeuanganTab { transaksi, tagihan }
@@ -62,25 +64,23 @@ class KeuanganState {
 // ─── Notifier ─────────────────────────────────────────────────────────────────
 class KeuanganNotifier extends StateNotifier<KeuanganState> {
   final KeuanganRepository _repo;
+  final AuthUser? user;
 
-  KeuanganNotifier(this._repo) : super(const KeuanganState()) {
+  KeuanganNotifier(this._repo, {this.user}) : super(const KeuanganState()) {
     loadInitial();
   }
 
   Future<void> loadInitial() async {
     state = state.copyWith(isLoadingAccount: true, error: null);
     try {
-      final summary = await _repo.getDashboardSummary();
-      // Coba ambil akun dari summary response
-      final accountData = summary['account'] ?? summary;
-      final accountNumber = accountData['account_number']?.toString() ?? '';
+      // Ambil akun berdasarkan NIS (jika santri), jika tidak ambil akun pertama
+      final acc = await _repo.getFirstAccount(nis: user?.nis);
 
-      if (accountNumber.isNotEmpty) {
-        final acc = await _repo.getAccount(accountNumber);
+      if (acc != null) {
         state = state.copyWith(isLoadingAccount: false, account: acc);
         await Future.wait([
-          _loadTransaksi(accountNumber, reset: true),
-          _loadTagihan(accountNumber),
+          _loadTransaksi(acc.accountNumber, reset: true),
+          _loadTagihan(acc.accountNumber),
         ]);
       } else {
         state = state.copyWith(isLoadingAccount: false, error: 'Rekening tidak ditemukan');
@@ -160,5 +160,6 @@ final keuanganRepositoryProvider = Provider<KeuanganRepository>((ref) {
 });
 
 final keuanganProvider = StateNotifierProvider<KeuanganNotifier, KeuanganState>((ref) {
-  return KeuanganNotifier(ref.watch(keuanganRepositoryProvider));
+  final user = ref.watch(authProvider).user;
+  return KeuanganNotifier(ref.watch(keuanganRepositoryProvider), user: user);
 });

@@ -34,7 +34,11 @@ class DashboardScreen extends ConsumerWidget {
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [AppTheme.primaryDark, AppTheme.primary, AppTheme.primaryLight],
+                      colors: [
+                        AppTheme.primaryDark,
+                        AppTheme.primary,
+                        AppTheme.primaryLight,
+                      ],
                     ),
                   ),
                   child: SafeArea(
@@ -70,7 +74,10 @@ class DashboardScreen extends ConsumerWidget {
                                 ),
                                 const SizedBox(height: 4),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: Colors.white.withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(20),
@@ -92,7 +99,9 @@ class DashboardScreen extends ConsumerWidget {
                             onTap: () => context.go(AppRoutes.profil),
                             child: CircleAvatar(
                               radius: 26,
-                              backgroundColor: Colors.white.withValues(alpha: 0.25),
+                              backgroundColor: Colors.white.withValues(
+                                alpha: 0.25,
+                              ),
                               child: Text(
                                 (user?.name.isNotEmpty == true)
                                     ? user!.name[0].toUpperCase()
@@ -121,7 +130,6 @@ class DashboardScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
                     // ── Error Banner ──────────────────────────────────────
                     if (dashState.error != null)
                       Container(
@@ -130,11 +138,17 @@ class DashboardScreen extends ConsumerWidget {
                         decoration: BoxDecoration(
                           color: AppTheme.warning.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppTheme.warning.withValues(alpha: 0.4)),
+                          border: Border.all(
+                            color: AppTheme.warning.withValues(alpha: 0.4),
+                          ),
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.wifi_off_rounded, color: AppTheme.warning, size: 18),
+                            const Icon(
+                              Icons.wifi_off_rounded,
+                              color: AppTheme.warning,
+                              size: 18,
+                            ),
                             const SizedBox(width: 10),
                             Expanded(
                               child: Text(
@@ -142,17 +156,30 @@ class DashboardScreen extends ConsumerWidget {
                                 style: TextStyle(
                                   fontFamily: 'Poppins',
                                   fontSize: 12,
-                                  color: AppTheme.warning.withValues(alpha: 0.9),
+                                  color: AppTheme.warning.withValues(
+                                    alpha: 0.9,
+                                  ),
                                 ),
                               ),
                             ),
                             TextButton(
-                              onPressed: () => ref.read(dashboardProvider.notifier).refresh(),
+                              onPressed: () => ref
+                                  .read(dashboardProvider.notifier)
+                                  .refresh(),
                               style: TextButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
                                 minimumSize: Size.zero,
                               ),
-                              child: const Text('Coba lagi', style: TextStyle(fontSize: 11, fontFamily: 'Poppins')),
+                              child: const Text(
+                                'Coba lagi',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontFamily: 'Poppins',
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -160,7 +187,8 @@ class DashboardScreen extends ConsumerWidget {
 
                     // ── Balance Card ──────────────────────────────────────
                     BalanceCard(
-                      balance: dashState.bankData?.formattedTotalSaldo ?? 'Rp -',
+                      balance:
+                          dashState.bankData?.formattedTotalSaldo ?? 'Rp -',
                       accountNumber: '•••• •••• ••••',
                       accountName: user?.name ?? 'Rekening Santri',
                       isLoading: dashState.isLoading,
@@ -238,7 +266,8 @@ class DashboardScreen extends ConsumerWidget {
                       const SizedBox(height: 12),
                       _BankSummaryRow(
                         topUp: dashState.bankData?.formattedTopUp ?? 'Rp -',
-                        transaksi: dashState.bankData?.formattedTransaksi ?? 'Rp -',
+                        transaksi:
+                            dashState.bankData?.formattedTransaksi ?? 'Rp -',
                         totalTrx: dashState.bankData?.totalTransaksiCount ?? 0,
                         isLoading: dashState.isLoading,
                       ),
@@ -279,7 +308,10 @@ class DashboardScreen extends ConsumerWidget {
   bool _isAdminOrStaf(String? role) {
     if (role == null) return false;
     final r = role.toLowerCase();
-    return r.contains('admin') || r.contains('staf') || r.contains('staff') || r.contains('guru');
+    return r.contains('admin') ||
+        r.contains('staf') ||
+        r.contains('staff') ||
+        r.contains('guru');
   }
 
   List<QuickAction> _buildQuickActions(BuildContext context, String? role) {
@@ -350,11 +382,35 @@ class _BankSummaryRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(child: _SummaryItem(label: 'Top Up Hari Ini', value: topUp, icon: Icons.arrow_upward_rounded, color: AppTheme.secondary, isLoading: isLoading)),
+        Expanded(
+          child: _SummaryItem(
+            label: 'Top Up Hari Ini',
+            value: topUp,
+            icon: Icons.arrow_upward_rounded,
+            color: AppTheme.secondary,
+            isLoading: isLoading,
+          ),
+        ),
         const SizedBox(width: 8),
-        Expanded(child: _SummaryItem(label: 'Transaksi', value: transaksi, icon: Icons.swap_horiz_rounded, color: AppTheme.primary, isLoading: isLoading)),
+        Expanded(
+          child: _SummaryItem(
+            label: 'Transaksi',
+            value: transaksi,
+            icon: Icons.swap_horiz_rounded,
+            color: AppTheme.primary,
+            isLoading: isLoading,
+          ),
+        ),
         const SizedBox(width: 8),
-        Expanded(child: _SummaryItem(label: 'Jml Transaksi', value: '$totalTrx', icon: Icons.receipt_outlined, color: AppTheme.accent, isLoading: isLoading)),
+        Expanded(
+          child: _SummaryItem(
+            label: 'Jml Transaksi',
+            value: '$totalTrx',
+            icon: Icons.receipt_outlined,
+            color: AppTheme.accent,
+            isLoading: isLoading,
+          ),
+        ),
       ],
     );
   }
@@ -395,11 +451,36 @@ class _SummaryItem extends StatelessWidget {
           Icon(icon, color: color, size: 20),
           const SizedBox(height: 6),
           if (isLoading)
-            Container(height: 14, width: 50, decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(4)))
+            Container(
+              height: 14,
+              width: 50,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            )
           else
-            Text(value, style: TextStyle(fontFamily: 'Poppins', fontSize: 12, fontWeight: FontWeight.w700, color: color), maxLines: 1, overflow: TextOverflow.ellipsis),
+            Text(
+              value,
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: color,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           const SizedBox(height: 2),
-          Text(label, style: const TextStyle(fontFamily: 'Poppins', fontSize: 9, color: AppTheme.textSecondary), textAlign: TextAlign.center),
+          Text(
+            label,
+            style: const TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 9,
+              color: AppTheme.textSecondary,
+            ),
+            textAlign: TextAlign.center,
+          ),
         ],
       ),
     );
@@ -432,7 +513,11 @@ class _InfoCard extends StatelessWidget {
               color: AppTheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.mosque_rounded, color: AppTheme.primary, size: 24),
+            child: const Icon(
+              Icons.mosque_rounded,
+              color: AppTheme.primary,
+              size: 24,
+            ),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -440,7 +525,7 @@ class _InfoCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Pondok Mobile',
+                  'SMARTMU',
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 14,

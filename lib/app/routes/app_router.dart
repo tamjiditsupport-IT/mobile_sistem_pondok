@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -28,21 +29,42 @@ class AppRoutes {
   static const String profil = '/home/profil';
 }
 
+// ─── Stream Notifier untuk GoRouter Refresh ──────────────────────────────────
+class GoRouterRefreshStream extends ChangeNotifier {
+  GoRouterRefreshStream(Stream<dynamic> stream) {
+    notifyListeners();
+    _subscription = stream.listen((dynamic _) => notifyListeners());
+  }
+
+  late final StreamSubscription<dynamic> _subscription;
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+}
+
 // ─── Router Provider ──────────────────────────────────────────────────────────
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authProvider);
+  final notifier = ref.watch(authProvider.notifier);
 
   return GoRouter(
     initialLocation: AppRoutes.splash,
+    refreshListenable: GoRouterRefreshStream(notifier.stream),
     redirect: (context, state) {
+      final authState = ref.read(authProvider);
       final isAuthenticated = authState.status == AuthStatus.authenticated;
-      final isLoading = authState.status == AuthStatus.loading ||
+      final isLoading =
+          authState.status == AuthStatus.loading ||
           authState.status == AuthStatus.initial;
       final isLoginPage = state.matchedLocation == AppRoutes.login;
 
       if (isLoading) return null;
       if (!isAuthenticated && !isLoginPage) return AppRoutes.login;
       if (isAuthenticated && isLoginPage) return AppRoutes.home;
+      if (isAuthenticated && state.matchedLocation == AppRoutes.splash)
+        return AppRoutes.home;
       return null;
     },
     routes: [
@@ -107,7 +129,7 @@ class _SplashScreen extends StatelessWidget {
             const Icon(Icons.mosque_rounded, size: 72, color: Colors.white),
             const SizedBox(height: 16),
             const Text(
-              'PONDOK MOBILE',
+              'SMARTMU',
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 22,
@@ -117,7 +139,10 @@ class _SplashScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 40),
-            const CircularProgressIndicator(color: Colors.white70, strokeWidth: 2),
+            const CircularProgressIndicator(
+              color: Colors.white70,
+              strokeWidth: 2,
+            ),
           ],
         ),
       ),

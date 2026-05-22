@@ -15,9 +15,9 @@ class SmptDashboardData {
   factory SmptDashboardData.fromJson(Map<String, dynamic> json) {
     final data = json['data'] ?? json;
     return SmptDashboardData(
-      totalSantri: data['total_students'] ?? data['total_santri'] ?? 0,
-      totalStaf: data['total_staff'] ?? data['total_staf'] ?? 0,
-      totalCalonSantri: data['total_registrations'] ?? data['total_calon_santri'] ?? 0,
+      totalSantri: data['total_students'] ?? data['total_santri'] ?? data['santri'] ?? 0,
+      totalStaf: data['total_staff'] ?? data['total_staf'] ?? data['asatidz'] ?? 0,
+      totalCalonSantri: data['total_registrations'] ?? data['total_calon_santri'] ?? data['santri_baru'] ?? 0,
       raw: data,
     );
   }
@@ -42,11 +42,11 @@ class BankDashboardSummary {
   factory BankDashboardSummary.fromJson(Map<String, dynamic> json) {
     final data = json['data'] ?? json;
     return BankDashboardSummary(
-      totalSaldo: double.tryParse(data['total_saldo']?.toString() ?? data['total_balance']?.toString() ?? '0') ?? 0.0,
-      totalAkun: data['total_accounts'] ?? data['total_akun'] ?? 0,
-      totalTopUpHariIni: double.tryParse(data['total_topup_today']?.toString() ?? '0') ?? 0.0,
-      totalTransaksiHariIni: double.tryParse(data['total_transaction_today']?.toString() ?? '0') ?? 0.0,
-      totalTransaksiCount: data['transaction_count'] ?? data['total_transactions'] ?? 0,
+      totalSaldo: double.tryParse(data['rekening']?['total_saldo']?.toString() ?? data['total_saldo']?.toString() ?? '0') ?? 0.0,
+      totalAkun: data['rekening']?['total_aktif'] ?? data['total_akun'] ?? 0,
+      totalTopUpHariIni: double.tryParse(data['topup']?['today_amount']?.toString() ?? data['total_topup_today']?.toString() ?? '0') ?? 0.0,
+      totalTransaksiHariIni: double.tryParse(data['payment']?['month_amount']?.toString() ?? data['total_transaction_today']?.toString() ?? '0') ?? 0.0,
+      totalTransaksiCount: data['koperasi']?['today_count'] ?? data['transaction_count'] ?? 0,
     );
   }
 

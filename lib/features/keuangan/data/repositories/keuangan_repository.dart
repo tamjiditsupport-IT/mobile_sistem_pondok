@@ -12,14 +12,19 @@ class KeuanganRepository {
     return BankAccount.fromJson(response.data['data'] ?? response.data);
   }
 
-  /// Ambil rekening santri berdasarkan NIS (search via SMPT).
-  Future<BankAccount?> getAccountByNis(String nis) async {
+  /// Ambil rekening santri berdasarkan NIS (search via SMPT) atau ambil rekening pertama
+  Future<BankAccount?> getFirstAccount({String? nis}) async {
     try {
-      final response = await _dio.get('/main/account', queryParameters: {'nis': nis});
-      final data = response.data['data'];
-      if (data == null || (data is List && data.isEmpty)) return null;
-      final item = data is List ? data.first : data;
-      return BankAccount.fromJson(item);
+      final Map<String, dynamic> query = nis != null && nis.isNotEmpty ? {'nis': nis} : <String, dynamic>{};
+      final response = await _dio.get('/main/account', queryParameters: query);
+      
+      final dynamic responseData = response.data['data'];
+      final List listData = responseData is Map && responseData.containsKey('data') 
+          ? responseData['data'] 
+          : (responseData is List ? responseData : []);
+          
+      if (listData.isEmpty) return null;
+      return BankAccount.fromJson(listData.first);
     } catch (_) {
       return null;
     }

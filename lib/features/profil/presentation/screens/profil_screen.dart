@@ -41,7 +41,9 @@ class ProfilScreen extends ConsumerWidget {
                     radius: 44,
                     backgroundColor: Colors.white,
                     child: Text(
-                      user?.name.isNotEmpty == true ? user!.name[0].toUpperCase() : 'U',
+                      user?.name.isNotEmpty == true
+                          ? user!.name[0].toUpperCase()
+                          : 'U',
                       style: const TextStyle(
                         fontSize: 36,
                         fontWeight: FontWeight.w700,
@@ -71,7 +73,10 @@ class ProfilScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 5,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(20),
@@ -100,12 +105,28 @@ class ProfilScreen extends ConsumerWidget {
                   _SectionCard(
                     title: 'Informasi Akun',
                     children: [
-                      _InfoRow(icon: Icons.person_outline, label: 'Nama Lengkap', value: user?.name ?? '-'),
-                      _InfoRow(icon: Icons.email_outlined, label: 'Email', value: user?.email ?? '-'),
+                      _InfoRow(
+                        icon: Icons.person_outline,
+                        label: 'Nama Lengkap',
+                        value: user?.name ?? '-',
+                      ),
+                      _InfoRow(
+                        icon: Icons.email_outlined,
+                        label: 'Email',
+                        value: user?.email ?? '-',
+                      ),
                       if (user?.nis != null)
-                        _InfoRow(icon: Icons.badge_outlined, label: 'NIS', value: user!.nis!),
+                        _InfoRow(
+                          icon: Icons.badge_outlined,
+                          label: 'NIS',
+                          value: user!.nis!,
+                        ),
                       if (user?.nip != null)
-                        _InfoRow(icon: Icons.work_outline, label: 'NIP', value: user!.nip!),
+                        _InfoRow(
+                          icon: Icons.work_outline,
+                          label: 'NIP',
+                          value: user!.nip!,
+                        ),
                       _InfoRow(
                         icon: Icons.admin_panel_settings_outlined,
                         label: 'Role',
@@ -171,8 +192,14 @@ class ProfilScreen extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Konfirmasi Keluar', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w700)),
-        content: const Text('Apakah Anda yakin ingin keluar dari akun?', style: TextStyle(fontFamily: 'Poppins')),
+        title: const Text(
+          'Konfirmasi Keluar',
+          style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w700),
+        ),
+        content: const Text(
+          'Apakah Anda yakin ingin keluar dari akun?',
+          style: TextStyle(fontFamily: 'Poppins'),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -184,7 +211,10 @@ class ProfilScreen extends ConsumerWidget {
               ref.read(authProvider.notifier).logout();
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppTheme.danger),
-            child: const Text('Keluar', style: TextStyle(fontFamily: 'Poppins', color: Colors.white)),
+            child: const Text(
+              'Keluar',
+              style: TextStyle(fontFamily: 'Poppins', color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -200,17 +230,41 @@ class ProfilScreen extends ConsumerWidget {
           children: [
             Icon(Icons.mosque_rounded, color: AppTheme.primary),
             SizedBox(width: 8),
-            Text('Pondok Mobile', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w700, fontSize: 16)),
+            Text(
+              'SMARTMU',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+              ),
+            ),
           ],
         ),
         content: const Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Aplikasi Manajemen Pondok Pesantren', style: TextStyle(fontFamily: 'Poppins', fontSize: 13)),
+            Text(
+              'Aplikasi Manajemen Pondok Pesantren',
+              style: TextStyle(fontFamily: 'Poppins', fontSize: 13),
+            ),
             SizedBox(height: 8),
-            Text('Versi: 1.0.0', style: TextStyle(fontFamily: 'Poppins', fontSize: 12, color: AppTheme.textSecondary)),
-            Text('Backend: SMPT + Bank Santri', style: TextStyle(fontFamily: 'Poppins', fontSize: 12, color: AppTheme.textSecondary)),
+            Text(
+              'Versi: 1.0.0',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 12,
+                color: AppTheme.textSecondary,
+              ),
+            ),
+            Text(
+              'Backend: SMPT + Bank Santri',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 12,
+                color: AppTheme.textSecondary,
+              ),
+            ),
           ],
         ),
         actions: [
@@ -285,7 +339,14 @@ class _InfoRow extends StatelessWidget {
         children: [
           Icon(icon, size: 18, color: AppTheme.textSecondary),
           const SizedBox(width: 12),
-          Text(label, style: const TextStyle(fontFamily: 'Poppins', fontSize: 13, color: AppTheme.textSecondary)),
+          Text(
+            label,
+            style: const TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 13,
+              color: AppTheme.textSecondary,
+            ),
+          ),
           const Spacer(),
           Text(
             value,
@@ -320,9 +381,20 @@ class _MenuRow extends StatelessWidget {
             Icon(icon, size: 20, color: AppTheme.primary),
             const SizedBox(width: 12),
             Expanded(
-              child: Text(label, style: const TextStyle(fontFamily: 'Poppins', fontSize: 13, fontWeight: FontWeight.w500)),
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ),
-            const Icon(Icons.chevron_right_rounded, color: AppTheme.textSecondary, size: 18),
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: AppTheme.textSecondary,
+              size: 18,
+            ),
           ],
         ),
       ),

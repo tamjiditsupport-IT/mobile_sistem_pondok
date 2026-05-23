@@ -44,7 +44,10 @@ class AuthUser {
     'token': token,
   };
 
-  bool get isWaliSantri => role?.toLowerCase().contains('wali') ?? false;
+  bool get isWaliSantri {
+    final r = role?.toLowerCase() ?? '';
+    return r.contains('wali') || r.contains('orangtua') || r.contains('orang tua') || r.contains('parent') || r.contains('user');
+  }
   bool get isSantri => nis != null && nis!.isNotEmpty;
   bool get isStaff => nip != null && nip!.isNotEmpty;
   bool get isAdmin => role?.toLowerCase().contains('admin') ?? false;

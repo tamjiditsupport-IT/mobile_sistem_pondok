@@ -4,8 +4,10 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/themes/app_theme.dart';
 import '../../../../app/routes/app_router.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../auth/data/models/auth_user.dart';
 import '../providers/dashboard_provider.dart';
 import '../widgets/dashboard_widgets.dart';
+import '../../../santri/presentation/providers/santri_provider.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -201,7 +203,7 @@ class DashboardScreen extends ConsumerWidget {
                     const SectionHeader(title: 'Aksi Cepat'),
                     const SizedBox(height: 12),
                     QuickActionGrid(
-                      actions: _buildQuickActions(context, user?.role),
+                      actions: _buildQuickActions(context, user),
                     ),
                     const SizedBox(height: 24),
 
@@ -274,6 +276,14 @@ class DashboardScreen extends ConsumerWidget {
                       const SizedBox(height: 24),
                     ],
 
+                    // ── Data Anak (khusus Wali Santri) ────────────────────
+                    if (user?.isWaliSantri == true) ...[
+                      const SectionHeader(title: 'Data Anak'),
+                      const SizedBox(height: 12),
+                      const _WaliAnakSection(),
+                      const SizedBox(height: 24),
+                    ],
+
                     // ── Info Aplikasi & Pengumuman ────────────────────────
                     const SectionHeader(title: 'Pengumuman Terbaru'),
                     const SizedBox(height: 12),
@@ -303,7 +313,7 @@ class DashboardScreen extends ConsumerWidget {
   String _getRoleLabel(String? role) {
     if (role == null) return 'Pengguna';
     final r = role.toLowerCase();
-    if (r.contains('wali')) return '👨‍👩‍👦 Wali Santri';
+    if (r.contains('wali') || r.contains('orangtua') || r.contains('orang tua') || r.contains('parent') || r.contains('user')) return '👨‍👩‍👦 Wali Santri';
     if (r.contains('santri')) return '🎓 Santri';
     if (r.contains('admin')) return '⚙️ Administrator';
     if (r.contains('guru') || r.contains('staf')) return '👨‍🏫 Staf/Guru';
@@ -319,8 +329,8 @@ class DashboardScreen extends ConsumerWidget {
         r.contains('guru');
   }
 
-  List<QuickAction> _buildQuickActions(BuildContext context, String? role) {
-    final isWali = role?.toLowerCase().contains('wali') ?? false;
+  List<QuickAction> _buildQuickActions(BuildContext context, AuthUser? user) {
+    final isWali = user?.isWaliSantri ?? false;
 
     // Fitur dasar yang bisa diakses SEMUA role (termasuk Wali Santri)
     final actions = <QuickAction>[
@@ -386,21 +396,24 @@ class DashboardScreen extends ConsumerWidget {
       {
         'title': 'Libur Idul Adha 1447 H',
         'date': '10 Dzulhijjah 1447',
-        'desc': 'Pemberitahuan libur kegiatan belajar mengajar selama hari raya Idul Adha dan hari tasyrik.',
+        'desc':
+            'Pemberitahuan libur kegiatan belajar mengajar selama hari raya Idul Adha dan hari tasyrik.',
         'color': AppTheme.primary,
         'icon': Icons.calendar_month_rounded,
       },
       {
         'title': 'Pembayaran Syahriah',
         'date': 'Maksimal 10 Setiap Bulan',
-        'desc': 'Dimohon kepada seluruh wali santri untuk menyelesaikan administrasi syahriah tepat waktu.',
+        'desc':
+            'Dimohon kepada seluruh wali santri untuk menyelesaikan administrasi syahriah tepat waktu.',
         'color': AppTheme.warning,
         'icon': Icons.notifications_active_rounded,
       },
       {
         'title': 'Kajian Kitab Kuning Terbuka',
         'date': 'Setiap Ahad Pagi',
-        'desc': 'Kajian rutin kitab Al-Hikam bersama pengasuh di Masjid Jami\' pondok pesantren.',
+        'desc':
+            'Kajian rutin kitab Al-Hikam bersama pengasuh di Masjid Jami\' pondok pesantren.',
         'color': AppTheme.success,
         'icon': Icons.menu_book_rounded,
       },
@@ -441,7 +454,11 @@ class DashboardScreen extends ConsumerWidget {
                         color: color.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Icon(item['icon'] as IconData, size: 20, color: color),
+                      child: Icon(
+                        item['icon'] as IconData,
+                        size: 20,
+                        color: color,
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -672,6 +689,149 @@ class _InfoCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+// ─── Section Anak untuk Wali Santri ──────────────────────────────────────────
+class _WaliAnakSection extends ConsumerWidget {
+  const _WaliAnakSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final santriState = ref.watch(santriProvider);
+
+    if (santriState.isLoading && santriState.santriList.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(20),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (santriState.santriList.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+        ),
+        child: Center(
+          child: Text(
+            'Belum ada data anak yang terhubung.',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              color: AppTheme.textSecondary,
+              fontSize: 13,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: santriState.santriList.map((santri) {
+        final isAktif = santri.status.toLowerCase() == 'aktif';
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: () => context.push('/home/santri/${santri.id}'),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: AppTheme.primary.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Text(
+                          santri.nama.isNotEmpty
+                              ? santri.nama[0].toUpperCase()
+                              : 'A',
+                          style: const TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.primary,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            santri.nama,
+                            style: const TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textPrimary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'NIS: ${santri.nis}',
+                            style: const TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 12,
+                              color: AppTheme.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: (isAktif ? AppTheme.success : AppTheme.danger)
+                            .withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        santri.status,
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: isAktif ? AppTheme.success : AppTheme.danger,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 }

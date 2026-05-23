@@ -41,3 +41,40 @@ class PelanggaranModel {
     );
   }
 }
+
+class PerizinanModel {
+  final int id;
+  final String tanggal;
+  final String tanggalSelesai;
+  final String alasan;
+  final String status;
+  final String namaSantri;
+
+  PerizinanModel({
+    required this.id,
+    required this.tanggal,
+    required this.tanggalSelesai,
+    required this.alasan,
+    required this.status,
+    required this.namaSantri,
+  });
+
+  factory PerizinanModel.fromJson(Map<String, dynamic> json) {
+    final santri = json['student'] ?? json['santri'];
+    String fullName = '-';
+    if (santri != null) {
+      final firstName = santri['first_name'] ?? '';
+      final lastName = santri['last_name'] ?? '';
+      fullName = santri['name'] ?? santri['nama'] ?? '$firstName $lastName'.trim();
+    }
+
+    return PerizinanModel(
+      id: json['id'] ?? 0,
+      tanggal: json['start_date'] ?? json['tanggal_mulai'] ?? json['created_at'] ?? '-',
+      tanggalSelesai: json['end_date'] ?? json['tanggal_selesai'] ?? '-',
+      alasan: json['reason'] ?? json['alasan'] ?? '-',
+      status: json['status'] ?? 'Menunggu',
+      namaSantri: fullName,
+    );
+  }
+}

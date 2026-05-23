@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/themes/app_theme.dart';
+import '../providers/akademik_provider.dart';
 
-class AkademikScreen extends StatefulWidget {
+class AkademikScreen extends ConsumerStatefulWidget {
   const AkademikScreen({super.key});
 
   @override
-  State<AkademikScreen> createState() => _AkademikScreenState();
+  ConsumerState<AkademikScreen> createState() => _AkademikScreenState();
 }
 
-class _AkademikScreenState extends State<AkademikScreen> with SingleTickerProviderStateMixin {
+class _AkademikScreenState extends ConsumerState<AkademikScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -25,6 +27,8 @@ class _AkademikScreenState extends State<AkademikScreen> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
+    final state = ref.watch(akademikProvider);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF0F4F8),
       appBar: AppBar(
@@ -51,31 +55,27 @@ class _AkademikScreenState extends State<AkademikScreen> with SingleTickerProvid
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildJadwalTab(),
-          _buildNilaiTab(),
-          _buildAbsensiTab(),
-        ],
-      ),
+      body: state.isLoading 
+        ? const Center(child: CircularProgressIndicator()) 
+        : TabBarView(
+            controller: _tabController,
+            children: [
+              _buildJadwalTab(state),
+              _buildNilaiTab(state),
+              _buildAbsensiTab(state),
+            ],
+          ),
     );
   }
 
-  Widget _buildJadwalTab() {
-    // Dummy Data
-    final jadwal = [
-      {'hari': 'Senin', 'mapel': 'Matematika', 'jam': '07:00 - 08:30', 'guru': 'Ust. Ahmad'},
-      {'hari': 'Senin', 'mapel': 'Fiqih', 'jam': '08:30 - 10:00', 'guru': 'Ust. Hasan'},
-      {'hari': 'Selasa', 'mapel': 'Bahasa Arab', 'jam': '07:00 - 08:30', 'guru': 'Ust. Ali'},
-      {'hari': 'Selasa', 'mapel': 'Aqidah Akhlaq', 'jam': '08:30 - 10:00', 'guru': 'Ust. Umar'},
-    ];
+  Widget _buildJadwalTab(AkademikState state) {
+    if (state.jadwal.isEmpty) return const Center(child: Text('Belum ada data jadwal.'));
 
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: jadwal.length,
+      itemCount: state.jadwal.length,
       itemBuilder: (context, index) {
-        final j = jadwal[index];
+        final j = state.jadwal[index];
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),
@@ -110,7 +110,7 @@ class _AkademikScreenState extends State<AkademikScreen> with SingleTickerProvid
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          j['mapel']!,
+                          j.mapel,
                           style: const TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 14,
@@ -118,7 +118,7 @@ class _AkademikScreenState extends State<AkademikScreen> with SingleTickerProvid
                           ),
                         ),
                         Text(
-                          j['hari']!,
+                          j.hari,
                           style: const TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 12,
@@ -130,7 +130,7 @@ class _AkademikScreenState extends State<AkademikScreen> with SingleTickerProvid
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${j['jam']} • ${j['guru']}',
+                      '${j.jamMulai} - ${j.jamSelesai} • ${j.namaGuru}',
                       style: const TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 12,
@@ -147,21 +147,15 @@ class _AkademikScreenState extends State<AkademikScreen> with SingleTickerProvid
     );
   }
 
-  Widget _buildNilaiTab() {
-    // Dummy Data
-    final nilai = [
-      {'semester': 'Ganjil 2025/2026', 'mapel': 'Matematika', 'nilai': 85},
-      {'semester': 'Ganjil 2025/2026', 'mapel': 'Fiqih', 'nilai': 90},
-      {'semester': 'Ganjil 2025/2026', 'mapel': 'Bahasa Arab', 'nilai': 78},
-      {'semester': 'Ganjil 2025/2026', 'mapel': 'Aqidah Akhlaq', 'nilai': 88},
-    ];
+  Widget _buildNilaiTab(AkademikState state) {
+    if (state.nilai.isEmpty) return const Center(child: Text('Belum ada data nilai.'));
 
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: nilai.length,
+      itemCount: state.nilai.length,
       itemBuilder: (context, index) {
-        final n = nilai[index];
-        final num val = n['nilai'] as num;
+        final n = state.nilai[index];
+        final num val = n.nilai;
         final color = val >= 80 ? AppTheme.success : (val >= 70 ? AppTheme.warning : AppTheme.danger);
 
         return Container(
@@ -185,7 +179,7 @@ class _AkademikScreenState extends State<AkademikScreen> with SingleTickerProvid
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      n['mapel'] as String,
+                      n.mapel,
                       style: const TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 14,
@@ -194,7 +188,7 @@ class _AkademikScreenState extends State<AkademikScreen> with SingleTickerProvid
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Semester ${n['semester']}',
+                      n.semester,
                       style: const TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 11,
@@ -227,18 +221,14 @@ class _AkademikScreenState extends State<AkademikScreen> with SingleTickerProvid
     );
   }
 
-  Widget _buildAbsensiTab() {
-    final absensi = [
-      {'bulan': 'Januari 2026', 'hadir': 22, 'izin': 1, 'sakit': 0, 'alfa': 0},
-      {'bulan': 'Desember 2025', 'hadir': 20, 'izin': 0, 'sakit': 2, 'alfa': 0},
-      {'bulan': 'November 2025', 'hadir': 21, 'izin': 0, 'sakit': 0, 'alfa': 1},
-    ];
+  Widget _buildAbsensiTab(AkademikState state) {
+    if (state.absensi.isEmpty) return const Center(child: Text('Belum ada data absensi.'));
 
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: absensi.length,
+      itemCount: state.absensi.length,
       itemBuilder: (context, index) {
-        final a = absensi[index];
+        final a = state.absensi[index];
         return Container(
           margin: const EdgeInsets.only(bottom: 16),
           padding: const EdgeInsets.all(16),
@@ -262,7 +252,7 @@ class _AkademikScreenState extends State<AkademikScreen> with SingleTickerProvid
                   const Icon(Icons.date_range_rounded, size: 20, color: AppTheme.primary),
                   const SizedBox(width: 8),
                   Text(
-                    a['bulan'] as String,
+                    a.bulan,
                     style: const TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 14,
@@ -279,10 +269,10 @@ class _AkademikScreenState extends State<AkademikScreen> with SingleTickerProvid
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildAbsensiItem('Hadir', a['hadir'] as int, AppTheme.success),
-                  _buildAbsensiItem('Izin', a['izin'] as int, AppTheme.primary),
-                  _buildAbsensiItem('Sakit', a['sakit'] as int, AppTheme.warning),
-                  _buildAbsensiItem('Alfa', a['alfa'] as int, AppTheme.danger),
+                  _buildAbsensiItem('Hadir', a.hadir, AppTheme.success),
+                  _buildAbsensiItem('Izin', a.izin, AppTheme.primary),
+                  _buildAbsensiItem('Sakit', a.sakit, AppTheme.warning),
+                  _buildAbsensiItem('Alfa', a.alfa, AppTheme.danger),
                 ],
               ),
             ],

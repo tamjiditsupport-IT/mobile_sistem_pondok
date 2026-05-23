@@ -44,26 +44,126 @@ class KamtibScreen extends ConsumerWidget {
               color: AppTheme.primary,
               child: _buildBody(state, ref),
             ),
-            _buildPerizinanTab(),
+            _buildPerizinanTab(state),
           ],
+        ),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: () => _showAddPerizinanDialog(context, ref),
+          backgroundColor: AppTheme.primary,
+          icon: const Icon(Icons.add, color: Colors.white),
+          label: const Text(
+            'Ajukan Izin',
+            style: TextStyle(fontFamily: 'Poppins', color: Colors.white, fontWeight: FontWeight.w600),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildPerizinanTab() {
-    final perizinanList = [
-      {'tanggal': '2025-10-12', 'alasan': 'Sakit', 'status': 'Disetujui'},
-      {'tanggal': '2025-09-01', 'alasan': 'Acara Keluarga', 'status': 'Ditolak'},
-      {'tanggal': '2025-11-20', 'alasan': 'Pulang Kampung', 'status': 'Menunggu'},
-    ];
+  void _showAddPerizinanDialog(BuildContext context, WidgetRef ref) {
+    final reasonController = TextEditingController();
+    
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(ctx).viewInsets.bottom,
+            left: 20,
+            right: 20,
+            top: 24,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Ajukan Izin Baru',
+                style: TextStyle(fontFamily: 'Poppins', fontSize: 18, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: reasonController,
+                decoration: InputDecoration(
+                  labelText: 'Alasan Izin / Cuti',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  prefixIcon: const Icon(Icons.edit_note_rounded),
+                ),
+                maxLines: 3,
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    if (reasonController.text.trim().isEmpty) return;
+                    Navigator.pop(ctx);
+                    
+                    try {
+                      await ref.read(kamtibProvider.notifier).submitPerizinan(
+                        studentId: 1, // Ideally we get this from user context
+                        startDate: DateTime.now().toIso8601String().split('T').first,
+                        endDate: DateTime.now().add(const Duration(days: 1)).toIso8601String().split('T').first,
+                        reason: reasonController.text,
+                      );
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Pengajuan izin berhasil dikirim'), backgroundColor: AppTheme.success),
+                        );
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Gagal mengajukan izin'), backgroundColor: AppTheme.danger),
+                        );
+                      }
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text(
+                    'Kirim Pengajuan',
+                    style: TextStyle(fontFamily: 'Poppins', fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
+  Widget _buildPerizinanTab(KamtibState state) {
+    if (state.perizinanList.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.assignment_outlined, size: 64, color: AppTheme.textSecondary.withValues(alpha: 0.5)),
+            const SizedBox(height: 16),
+            const Text(
+              'Belum ada riwayat perizinan',
+              style: TextStyle(fontFamily: 'Poppins', fontSize: 16, color: AppTheme.textSecondary),
+            ),
+          ],
+        ),
+      );
+    }
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: perizinanList.length,
+      itemCount: state.perizinanList.length,
       itemBuilder: (context, index) {
-        final p = perizinanList[index];
-        final status = p['status']!;
+        final p = state.perizinanList[index];
+        final status = p.status;
         Color statusColor = AppTheme.warning;
         if (status == 'Disetujui') statusColor = AppTheme.success;
         if (status == 'Ditolak') statusColor = AppTheme.danger;
@@ -99,7 +199,7 @@ class KamtibScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      p['alasan']!,
+                      p.alasan,
                       style: const TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 14,
@@ -108,7 +208,7 @@ class KamtibScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      p['tanggal']!,
+                      p.tanggal,
                       style: const TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 12,

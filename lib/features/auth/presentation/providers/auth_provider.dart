@@ -40,18 +40,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   /// Cek apakah user sudah login saat app dibuka.
+  /// Diubah: Memaksa user login kembali setiap kali aplikasi dibuka.
   Future<void> _checkInitialAuth() async {
     state = state.copyWith(status: AuthStatus.loading);
-    try {
-      final user = await _repository.getLoggedInUser();
-      if (user != null) {
-        state = AuthState(status: AuthStatus.authenticated, user: user);
-      } else {
-        state = const AuthState(status: AuthStatus.unauthenticated);
-      }
-    } catch (_) {
-      state = const AuthState(status: AuthStatus.unauthenticated);
-    }
+    // Hapus sesi lama setiap kali aplikasi direstart agar tidak langsung masuk
+    await _repository.logout();
+    state = const AuthState(status: AuthStatus.unauthenticated);
   }
 
   Future<void> login({required String email, required String password}) async {

@@ -12,8 +12,20 @@ class ProfilScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF0F4F8),
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('Profil Saya'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text(
+          'Profil Saya',
+          style: TextStyle(
+            color: Colors.white,
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.w700,
+          ),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_outlined),
@@ -31,21 +43,31 @@ class ProfilScreen extends ConsumerWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [AppTheme.primary, Color(0xFFF0F4F8)],
+                  colors: [
+                    AppTheme.primaryDark, // Darker blue at top
+                    AppTheme.primaryLight, // Lighter blue
+                    Color(0xFFF0F4F8), // Fades to scaffold background
+                  ],
+                  stops: [0.0, 0.6, 1.0],
                 ),
               ),
-              padding: const EdgeInsets.fromLTRB(20, 30, 20, 40),
+              padding: EdgeInsets.only(
+                top: MediaQuery.of(context).padding.top + kToolbarHeight + 20,
+                bottom: 40,
+                left: 20,
+                right: 20,
+              ),
               child: Column(
                 children: [
                   CircleAvatar(
-                    radius: 44,
+                    radius: 46,
                     backgroundColor: Colors.white,
                     child: Text(
                       user?.name.isNotEmpty == true
                           ? user!.name[0].toUpperCase()
                           : 'U',
                       style: const TextStyle(
-                        fontSize: 36,
+                        fontSize: 40,
                         fontWeight: FontWeight.w700,
                         color: AppTheme.primary,
                         fontFamily: 'Poppins',
@@ -87,7 +109,7 @@ class ProfilScreen extends ConsumerWidget {
                         fontFamily: 'Poppins',
                         fontSize: 12,
                         color: Colors.white,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                   ),
@@ -166,13 +188,17 @@ class ProfilScreen extends ConsumerWidget {
                     child: ElevatedButton.icon(
                       onPressed: () => _confirmLogout(context, ref),
                       icon: const Icon(Icons.logout_rounded),
-                      label: const Text('Keluar dari Akun'),
+                      label: const Text(
+                        'Keluar dari Akun',
+                        style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600),
+                      ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.danger,
+                        backgroundColor: const Color(0xFFE74C3C), // Red color from screenshot
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        elevation: 0,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(10),
                         ),
                       ),
                     ),

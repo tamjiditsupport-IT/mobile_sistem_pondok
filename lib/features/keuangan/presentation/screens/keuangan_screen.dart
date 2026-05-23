@@ -469,82 +469,213 @@ class _TransaksiCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              isCredit
-                  ? Icons.arrow_downward_rounded
-                  : Icons.arrow_upward_rounded,
-              color: color,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  trx.type.isNotEmpty
-                      ? trx.type
-                      : (isCredit ? 'Masuk' : 'Keluar'),
-                  style: const TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
+      child: InkWell(
+        onTap: () => _showTransactionDetail(context),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                if (trx.description != null && trx.description!.isNotEmpty)
+                child: Icon(
+                  isCredit
+                      ? Icons.arrow_downward_rounded
+                      : Icons.arrow_upward_rounded,
+                  color: color,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      trx.type.isNotEmpty
+                          ? trx.type
+                          : (isCredit ? 'Masuk' : 'Keluar'),
+                      style: const TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (trx.description != null && trx.description!.isNotEmpty)
+                      Text(
+                        trx.description!,
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 11,
+                          color: AppTheme.textSecondary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    Text(
+                      _formatDate(trx.createdAt),
+                      style: const TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 10,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
                   Text(
-                    trx.description!,
+                    trx.formattedAmount,
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: color,
+                    ),
+                  ),
+                  Text(
+                    trx.transactionCode,
                     style: const TextStyle(
                       fontFamily: 'Poppins',
-                      fontSize: 11,
+                      fontSize: 9,
                       color: AppTheme.textSecondary,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
-                Text(
-                  _formatDate(trx.createdAt),
-                  style: const TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 10,
-                    color: AppTheme.textSecondary,
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showTransactionDetail(BuildContext context) {
+    final isCredit = trx.isCredit;
+    final color = isCredit ? AppTheme.success : AppTheme.danger;
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isCredit ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
+                    color: color,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Transaksi Berhasil',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Text(
+                        _formatDate(trx.createdAt),
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 12,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                trx.formattedAmount,
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: color,
-                ),
-              ),
-              Text(
-                trx.transactionCode,
-                style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 9,
-                  color: AppTheme.textSecondary,
-                ),
-              ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Divider(),
+            ),
+            _DetailRow(label: 'ID Transaksi', value: trx.transactionCode),
+            const SizedBox(height: 12),
+            _DetailRow(label: 'Jenis', value: trx.type.isNotEmpty ? trx.type : (isCredit ? 'Pemasukan' : 'Pengeluaran')),
+            const SizedBox(height: 12),
+            if (trx.description != null && trx.description!.isNotEmpty) ...[
+              _DetailRow(label: 'Catatan', value: trx.description!),
+              const SizedBox(height: 12),
             ],
-          ),
-        ],
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Divider(),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Total',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Text(
+                  trx.formattedAmount,
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: color,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(ctx),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primary,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text('Tutup', style: TextStyle(fontFamily: 'Poppins', color: Colors.white, fontWeight: FontWeight.w600)),
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+        ),
       ),
     );
   }
@@ -565,6 +696,39 @@ class _TransaksiCard extends StatelessWidget {
       'Des',
     ];
     return '${dt.day} ${months[dt.month - 1]} ${dt.year} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _DetailRow({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 13,
+            color: AppTheme.textSecondary,
+          ),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: AppTheme.textPrimary,
+          ),
+        ),
+      ],
+    );
   }
 }
 

@@ -32,21 +32,33 @@ class _AkademikScreenState extends ConsumerState<AkademikScreen> with SingleTick
     return Scaffold(
       backgroundColor: const Color(0xFFF0F4F8),
       appBar: AppBar(
-        title: const Text('Akademik'),
+        backgroundColor: AppTheme.primary,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text(
+          'Akademik',
+          style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600, color: Colors.white),
+        ),
         bottom: TabBar(
           controller: _tabController,
-          labelColor: AppTheme.primary,
-          unselectedLabelColor: AppTheme.textSecondary,
-          indicatorColor: AppTheme.primary,
-          indicatorWeight: 3,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white.withValues(alpha: 0.6),
+          indicatorColor: Colors.white,
+          indicatorWeight: 4,
+          indicatorSize: TabBarIndicatorSize.label,
+          indicator: const UnderlineTabIndicator(
+            borderSide: BorderSide(width: 4.0, color: Colors.white),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(4)),
+          ),
           labelStyle: const TextStyle(
             fontFamily: 'Poppins',
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
           ),
           unselectedLabelStyle: const TextStyle(
             fontFamily: 'Poppins',
-            fontSize: 13,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
           ),
           tabs: const [
             Tab(text: 'Jadwal'),
@@ -119,16 +131,16 @@ class _AkademikScreenState extends ConsumerState<AkademikScreen> with SingleTick
                         ),
                         Text(
                           j.hari,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.secondary,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.success, // Changed to success color for better visual like screenshot
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Text(
                       '${j.jamMulai} - ${j.jamSelesai} • ${j.namaGuru}',
                       style: const TextStyle(

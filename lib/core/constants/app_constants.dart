@@ -5,13 +5,12 @@
 /// Untuk production, ganti dengan URL server VPS.
 class AppConstants {
   // ─── SMPT Backend ──────────────────────────────────────────────────────────
-  static const String smptBaseUrl = 'http://10.0.2.2:8000/api';
-  // Catatan: 10.0.2.2 adalah alias localhost untuk Android Emulator.
-  // Untuk device fisik via USB, ganti dengan IP lokal Anda, contoh:
-  // static const String smptBaseUrl = 'http://192.168.1.x:8000/api';
+  // Local Development: 'http://10.0.2.2:8000/api'
+  static const String smptBaseUrl = 'https://api.tamjid.or.id/api';
 
   // ─── Bank Santri Backend ───────────────────────────────────────────────────
-  static const String bankBaseUrl = 'http://10.0.2.2:8001/api';
+  // Local Development: 'http://10.0.2.2:8001/api'
+  static const String bankBaseUrl = 'https://bank.tamjid.or.id/api';
 
   // ─── Storage Keys ─────────────────────────────────────────────────────────
   static const String tokenKey = 'auth_token';

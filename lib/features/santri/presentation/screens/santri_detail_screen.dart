@@ -11,27 +11,30 @@ class SantriDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // For simplicity, we just find the santri from the already loaded list in the provider.
-    final state = ref.watch(santriProvider);
-    final santriIndex = state.santriList.indexWhere((s) => s.id == santriId);
-    
-    if (santriIndex == -1) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Detail Santri')),
-        body: const Center(child: Text('Data santri tidak ditemukan.')),
-      );
-    }
-
-    final santri = state.santriList[santriIndex];
-    final isAktif = santri.status.toLowerCase() == 'aktif';
+    final santriAsync = ref.watch(santriDetailProvider(santriId));
 
     return Scaffold(
       backgroundColor: const Color(0xFFF0F4F8),
       appBar: AppBar(
         title: const Text('Detail Santri'),
       ),
-      body: SingleChildScrollView(
-        child: Column(
+      body: santriAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, color: AppTheme.danger, size: 48),
+              const SizedBox(height: 16),
+              Text('Gagal memuat: ${err.toString().split('Exception:').last.trim()}'),
+            ],
+          ),
+        ),
+        data: (santri) {
+          final isAktif = santri.status.toLowerCase() == 'aktif';
+
+          return SingleChildScrollView(
+            child: Column(
           children: [
             // Header Profile
             Container(
@@ -145,8 +148,10 @@ class SantriDetailScreen extends ConsumerWidget {
                 ],
               ),
             ),
-          ],
-        ),
+            ],
+          ),
+        );
+        },
       ),
     );
   }

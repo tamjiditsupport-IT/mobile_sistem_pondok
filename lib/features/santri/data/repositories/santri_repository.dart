@@ -21,4 +21,13 @@ class SantriRepository {
     final data = response.data['data']?['students'] as List? ?? [];
     return data.map<SantriModel>((e) => SantriModel.fromJson(e)).toList();
   }
+
+  Future<SantriModel> getSantriById(int santriId) async {
+    try {
+      final response = await _dio.get('/main/student/$santriId');
+      return SantriModel.fromJson(response.data['data']);
+    } catch (e) {
+      throw Exception('Gagal mengambil detail santri: $e');
+    }
+  }
 }

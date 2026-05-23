@@ -70,3 +70,8 @@ final santriProvider = StateNotifierProvider<SantriNotifier, SantriState>((ref) 
     ref.watch(authProvider),
   );
 });
+
+final santriDetailProvider = FutureProvider.family<SantriModel, int>((ref, id) async {
+  final repo = ref.watch(santriRepositoryProvider);
+  return repo.getSantriById(id);
+});

@@ -74,6 +74,23 @@ class KamtibNotifier extends StateNotifier<KamtibState> {
       throw Exception('Gagal mengajukan perizinan');
     }
   }
+  Future<void> approvePerizinan(int id) async {
+    try {
+      await _repo.approvePerizinan(id);
+      await loadData();
+    } catch (e) {
+      throw Exception('Gagal menyetujui perizinan: $e');
+    }
+  }
+
+  Future<void> rejectPerizinan(int id, String reason) async {
+    try {
+      await _repo.rejectPerizinan(id, reason);
+      await loadData();
+    } catch (e) {
+      throw Exception('Gagal menolak perizinan: $e');
+    }
+  }
 }
 
 final kamtibRepositoryProvider = Provider<KamtibRepository>((ref) {

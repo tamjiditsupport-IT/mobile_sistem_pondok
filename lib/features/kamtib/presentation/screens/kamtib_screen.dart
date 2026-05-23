@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/themes/app_theme.dart';
 import '../providers/kamtib_provider.dart';
 import '../../data/models/kamtib_model.dart';
+import '../../../../features/auth/presentation/providers/auth_provider.dart';
 
 class KamtibScreen extends ConsumerWidget {
   const KamtibScreen({super.key});
@@ -10,6 +11,8 @@ class KamtibScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(kamtibProvider);
+    final user = ref.watch(authProvider).user;
+    final isStaffOrAdmin = user?.isStaff == true || user?.isAdmin == true;
 
     return DefaultTabController(
       length: 2,
@@ -56,7 +59,7 @@ class KamtibScreen extends ConsumerWidget {
               color: AppTheme.primary,
               child: _buildBody(state, ref),
             ),
-            _buildPerizinanTab(state),
+            _buildPerizinanTab(state, isStaffOrAdmin, ref, context),
           ],
         ),
         floatingActionButton: FloatingActionButton.extended(
@@ -154,7 +157,7 @@ class KamtibScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildPerizinanTab(KamtibState state) {
+  Widget _buildPerizinanTab(KamtibState state, bool isStaffOrAdmin, WidgetRef ref, BuildContext context) {
     if (state.perizinanList.isEmpty) {
       return Center(
         child: Column(
@@ -195,57 +198,107 @@ class KamtibScreen extends ConsumerWidget {
               ),
             ],
           ),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppTheme.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(Icons.assignment_turned_in_rounded, color: AppTheme.primary),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      p.alasan,
-                      style: const TextStyle(
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.assignment_turned_in_rounded, color: AppTheme.primary),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          p.alasan,
+                          style: const TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          p.tanggal,
+                          style: const TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 12,
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: statusColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      status,
+                      style: TextStyle(
                         fontFamily: 'Poppins',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: statusColor,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      p.tanggal,
-                      style: const TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 12,
-                        color: AppTheme.textSecondary,
+                  ),
+                ],
+              ),
+              if (isStaffOrAdmin && status.toLowerCase() == 'pending') ...[
+                const SizedBox(height: 16),
+                const Divider(height: 1),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () async {
+                        try {
+                          await ref.read(kamtibProvider.notifier).rejectPerizinan(p.id, 'Ditolak Pengurus');
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Perizinan Ditolak'), backgroundColor: AppTheme.danger));
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: AppTheme.danger));
+                          }
+                        }
+                      },
+                      child: const Text('Tolak', style: TextStyle(color: AppTheme.danger, fontFamily: 'Poppins', fontWeight: FontWeight.w600)),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.success,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
+                      onPressed: () async {
+                        try {
+                          await ref.read(kamtibProvider.notifier).approvePerizinan(p.id);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Perizinan Disetujui'), backgroundColor: AppTheme.success));
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: AppTheme.danger));
+                          }
+                        }
+                      },
+                      child: const Text('Setujui', style: TextStyle(color: Colors.white, fontFamily: 'Poppins', fontWeight: FontWeight.w600)),
                     ),
                   ],
                 ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  status,
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: statusColor,
-                  ),
-                ),
-              ),
+              ],
             ],
           ),
         );

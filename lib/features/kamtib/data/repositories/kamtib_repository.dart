@@ -41,4 +41,14 @@ class KamtibRepository {
       'reason': reason,
     });
   }
+
+  Future<void> approvePerizinan(int id) async {
+    await _dio.post('/main/student-leave/$id/approve');
+  }
+
+  Future<void> rejectPerizinan(int id, String reason) async {
+    await _dio.post('/main/student-leave/$id/reject', data: {
+      'reason': reason,
+    });
+  }
 }

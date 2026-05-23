@@ -61,7 +61,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     final authState = ref.watch(authProvider);
     final isLoading = authState.status == AuthStatus.loading;
 
-    // Listen for errors
     ref.listen<AuthState>(authProvider, (_, next) {
       if (next.status == AuthStatus.error && next.errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -79,164 +78,148 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     });
 
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppTheme.primaryDark,
-              AppTheme.primary,
-              AppTheme.primaryLight,
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: SlideTransition(
-                  position: _slideAnimation,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // ─── Logo & Header ───────────────────────────────────
-                      _buildHeader(),
-                      const SizedBox(height: 40),
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+            child: FadeTransition(
+              opacity: _fadeAnimation,
+              child: SlideTransition(
+                position: _slideAnimation,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildHeader(),
+                    const SizedBox(height: 56),
 
-                      // ─── Login Card ──────────────────────────────────────
-                      Container(
-                        padding: const EdgeInsets.all(28),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.15),
-                              blurRadius: 30,
-                              offset: const Offset(0, 10),
+                    Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Email Field
+                          TextFormField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            enabled: !isLoading,
+                            style: const TextStyle(fontWeight: FontWeight.w500),
+                            decoration: InputDecoration(
+                              hintText: 'Email',
+                              prefixIcon: const Icon(
+                                Icons.email_outlined,
+                                color: AppTheme.textSecondary,
+                                size: 22,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: BorderSide.none,
+                              ),
+                              filled: true,
+                              fillColor: const Color(0xFFF4F6F9),
+                              contentPadding: const EdgeInsets.symmetric(vertical: 20),
                             ),
-                          ],
-                        ),
-                        child: Form(
-                          key: _formKey,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Text(
-                                'Masuk ke Akun Anda',
-                                style: Theme.of(context).textTheme.headlineSmall
-                                    ?.copyWith(color: AppTheme.textPrimary),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                'Gunakan akun yang terdaftar di sistem pondok',
-                                style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(color: AppTheme.textSecondary),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 28),
-
-                              // Email Field
-                              TextFormField(
-                                controller: _emailController,
-                                keyboardType: TextInputType.emailAddress,
-                                enabled: !isLoading,
-                                decoration: const InputDecoration(
-                                  labelText: 'Email',
-                                  prefixIcon: Icon(
-                                    Icons.email_outlined,
-                                    color: AppTheme.primary,
-                                  ),
-                                ),
-                                validator: (v) {
-                                  if (v == null || v.trim().isEmpty)
-                                    return 'Email tidak boleh kosong';
-                                  if (!v.contains('@'))
-                                    return 'Format email tidak valid';
-                                  return null;
-                                },
-                              ),
-                              const SizedBox(height: 16),
-
-                              // Password Field
-                              TextFormField(
-                                controller: _passwordController,
-                                obscureText: _obscurePassword,
-                                enabled: !isLoading,
-                                decoration: InputDecoration(
-                                  labelText: 'Password',
-                                  prefixIcon: const Icon(
-                                    Icons.lock_outline,
-                                    color: AppTheme.primary,
-                                  ),
-                                  suffixIcon: IconButton(
-                                    icon: Icon(
-                                      _obscurePassword
-                                          ? Icons.visibility_outlined
-                                          : Icons.visibility_off_outlined,
-                                      color: AppTheme.textSecondary,
-                                    ),
-                                    onPressed: () => setState(
-                                      () =>
-                                          _obscurePassword = !_obscurePassword,
-                                    ),
-                                  ),
-                                ),
-                                validator: (v) {
-                                  if (v == null || v.isEmpty)
-                                    return 'Password tidak boleh kosong';
-                                  if (v.length < 6)
-                                    return 'Password minimal 6 karakter';
-                                  return null;
-                                },
-                                onFieldSubmitted: (_) => _handleLogin(),
-                              ),
-                              const SizedBox(height: 28),
-
-                              // Login Button
-                              AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
-                                child: ElevatedButton(
-                                  onPressed: isLoading ? null : _handleLogin,
-                                  style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 16,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                  child: isLoading
-                                      ? const SizedBox(
-                                          height: 20,
-                                          width: 20,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2.5,
-                                            color: Colors.white,
-                                          ),
-                                        )
-                                      : const Text('Masuk'),
-                                ),
-                              ),
-                            ],
+                            validator: (v) {
+                              if (v == null || v.trim().isEmpty) return 'Email tidak boleh kosong';
+                              if (!v.contains('@')) return 'Format email tidak valid';
+                              return null;
+                            },
                           ),
-                        ),
-                      ),
+                          const SizedBox(height: 20),
 
-                      const SizedBox(height: 24),
-                      Text(
-                        'Hubungi admin pondok jika belum memiliki akun',
-                        style: Theme.of(
-                          context,
-                        ).textTheme.bodySmall?.copyWith(color: Colors.white70),
-                        textAlign: TextAlign.center,
+                          // Password Field
+                          TextFormField(
+                            controller: _passwordController,
+                            obscureText: _obscurePassword,
+                            enabled: !isLoading,
+                            style: const TextStyle(fontWeight: FontWeight.w500),
+                            decoration: InputDecoration(
+                              hintText: 'Password',
+                              prefixIcon: const Icon(
+                                Icons.lock_outline,
+                                color: AppTheme.textSecondary,
+                                size: 22,
+                              ),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                                  color: AppTheme.textSecondary,
+                                  size: 22,
+                                ),
+                                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: BorderSide.none,
+                              ),
+                              filled: true,
+                              fillColor: const Color(0xFFF4F6F9),
+                              contentPadding: const EdgeInsets.symmetric(vertical: 20),
+                            ),
+                            validator: (v) {
+                              if (v == null || v.isEmpty) return 'Password tidak boleh kosong';
+                              if (v.length < 6) return 'Password minimal 6 karakter';
+                              return null;
+                            },
+                            onFieldSubmitted: (_) => _handleLogin(),
+                          ),
+                          const SizedBox(height: 40),
+
+                          // Login Button
+                          Container(
+                            decoration: BoxDecoration(
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppTheme.primary.withOpacity(0.25),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: ElevatedButton(
+                              onPressed: isLoading ? null : _handleLogin,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.primary,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 18),
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              child: isLoading
+                                  ? const SizedBox(
+                                      height: 24,
+                                      width: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const Text(
+                                      'Masuk Sekarang',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+
+                    const SizedBox(height: 48),
+                    Text(
+                      'Belum memiliki akun?\nSilakan hubungi admin pondok',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppTheme.textSecondary,
+                            height: 1.6,
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -248,45 +231,49 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
   Widget _buildHeader() {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Container(
-          width: 90,
-          height: 90,
+          width: 80,
+          height: 80,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: const Color(0xFFF4F6F9),
             shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 4),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                blurRadius: 15,
-                offset: const Offset(0, 5),
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
               ),
             ],
           ),
           child: const Icon(
             Icons.school_rounded,
-            size: 50,
+            size: 36,
             color: AppTheme.primary,
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 32),
         const Text(
-          'SMARTMU',
+          'Selamat Datang',
           style: TextStyle(
             fontFamily: 'Poppins',
-            fontSize: 24,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-            letterSpacing: 2,
+            fontSize: 26,
+            fontWeight: FontWeight.w800,
+            color: AppTheme.textPrimary,
+            letterSpacing: 0.5,
           ),
+          textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 12),
         const Text(
-          'Sistem Manajemen Administrasi Pondok Pesantren \n Miftahul Ulum Panyeppen ',
+          'SMARTMU\nSistem Manajemen Administrasi Pondok\nPesantren Miftahul Ulum',
           style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 13,
-            color: Colors.white70,
+            color: AppTheme.textSecondary,
+            height: 1.6,
           ),
           textAlign: TextAlign.center,
         ),

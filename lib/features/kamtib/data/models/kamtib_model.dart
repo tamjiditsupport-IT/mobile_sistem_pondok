@@ -16,13 +16,28 @@ class PelanggaranModel {
   });
 
   factory PelanggaranModel.fromJson(Map<String, dynamic> json) {
+    // Parsing nama santri
+    final santri = json['student'] ?? json['santri'];
+    String fullName = '-';
+    if (santri != null) {
+      final firstName = santri['first_name'] ?? '';
+      final lastName = santri['last_name'] ?? '';
+      fullName = santri['name'] ?? santri['nama'] ?? '$firstName $lastName'.trim();
+    }
+
+    // Parsing detail pelanggaran
+    final violation = json['violation'] ?? json['pelanggaran'];
+    final namaPelanggaran = violation?['name'] ?? violation?['nama'] ?? '-';
+    final poin = violation?['point'] ?? violation?['poin'] ?? 0;
+    final kategori = violation?['category']?['name'] ?? violation?['kategori'] ?? '-';
+
     return PelanggaranModel(
       id: json['id'] ?? 0,
-      namaSantri: json['santri']?['name'] ?? json['santri_name'] ?? '-',
-      namaPelanggaran: json['pelanggaran']?['name'] ?? json['pelanggaran_name'] ?? '-',
-      poin: int.tryParse(json['poin']?.toString() ?? '0') ?? 0,
-      kategori: json['pelanggaran']?['kategori'] ?? json['kategori'] ?? '-',
-      tanggal: json['tanggal'] ?? json['created_at'] ?? '',
+      namaSantri: fullName,
+      namaPelanggaran: namaPelanggaran,
+      poin: int.tryParse(poin.toString()) ?? 0,
+      kategori: kategori,
+      tanggal: json['violation_date'] ?? json['tanggal'] ?? json['created_at'] ?? '',
     );
   }
 }

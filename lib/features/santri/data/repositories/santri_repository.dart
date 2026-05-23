@@ -6,7 +6,7 @@ class SantriRepository {
   final Dio _dio = SmptApiClient.instance;
 
   Future<List<SantriModel>> getSantriList({int page = 1, String? search}) async {
-    final response = await _dio.get('/santri', queryParameters: {
+    final response = await _dio.get('/main/student', queryParameters: {
       'page': page,
       if (search != null && search.isNotEmpty) 'search': search,
     });
@@ -17,8 +17,8 @@ class SantriRepository {
   }
   
   Future<List<SantriModel>> getSantriByWali(int waliId) async {
-    final response = await _dio.get('/wali/$waliId/santri');
-    final data = response.data['data'] as List? ?? [];
+    final response = await _dio.get('/main/parent/$waliId');
+    final data = response.data['data']?['students'] as List? ?? [];
     return data.map<SantriModel>((e) => SantriModel.fromJson(e)).toList();
   }
 }

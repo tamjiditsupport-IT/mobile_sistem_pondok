@@ -315,6 +315,9 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   List<QuickAction> _buildQuickActions(BuildContext context, String? role) {
+    final isWali = role?.toLowerCase().contains('wali') ?? false;
+
+    // Fitur dasar yang bisa diakses SEMUA role (termasuk Wali Santri)
     final actions = <QuickAction>[
       QuickAction(
         icon: Icons.account_balance_wallet_rounded,
@@ -323,42 +326,52 @@ class DashboardScreen extends ConsumerWidget {
         onTap: () => context.go(AppRoutes.keuangan),
       ),
       QuickAction(
-        icon: Icons.add_card_rounded,
-        label: 'Top Up',
-        color: AppTheme.secondary,
-        onTap: () => context.go(AppRoutes.keuangan),
+        icon: Icons.people_rounded,
+        label: 'Santri',
+        color: const Color(0xFF1D8348),
+        onTap: () => context.go(AppRoutes.santri),
       ),
       QuickAction(
-        icon: Icons.receipt_long_rounded,
-        label: 'Tagihan',
-        color: AppTheme.accent,
-        onTap: () => context.go(AppRoutes.keuangan),
+        icon: Icons.menu_book_rounded,
+        label: 'Akademik',
+        color: const Color(0xFFE67E22),
+        onTap: () => context.go(AppRoutes.akademik),
       ),
+      QuickAction(
+        icon: Icons.shield_rounded,
+        label: 'Kamtib',
+        color: AppTheme.danger,
+        onTap: () => context.go(AppRoutes.kamtib),
+      ),
+    ];
+
+    // Fitur tambahan yang HANYA tampil untuk Admin/Staf (bukan Wali Santri)
+    if (!isWali) {
+      actions.addAll([
+        QuickAction(
+          icon: Icons.add_card_rounded,
+          label: 'Top Up',
+          color: AppTheme.secondary,
+          onTap: () => context.go(AppRoutes.keuangan),
+        ),
+        QuickAction(
+          icon: Icons.receipt_long_rounded,
+          label: 'Tagihan',
+          color: AppTheme.accent,
+          onTap: () => context.go(AppRoutes.keuangan),
+        ),
+      ]);
+    }
+
+    // Profil di akhir
+    actions.add(
       QuickAction(
         icon: Icons.person_rounded,
         label: 'Profil',
         color: const Color(0xFF7D3C98),
         onTap: () => context.go(AppRoutes.profil),
       ),
-    ];
-
-    final r = role?.toLowerCase() ?? '';
-    if (r.contains('admin') || r.contains('staf') || r.contains('staff')) {
-      actions.addAll([
-        QuickAction(
-          icon: Icons.people_rounded,
-          label: 'Santri',
-          color: const Color(0xFF1D8348),
-          onTap: () => context.go(AppRoutes.santri),
-        ),
-        QuickAction(
-          icon: Icons.shield_rounded,
-          label: 'Kamtib',
-          color: AppTheme.danger,
-          onTap: () => context.go(AppRoutes.kamtib),
-        ),
-      ]);
-    }
+    );
 
     return actions;
   }

@@ -20,13 +20,17 @@ class SantriModel {
   });
 
   factory SantriModel.fromJson(Map<String, dynamic> json) {
+    final firstName = json['first_name'] ?? '';
+    final lastName = json['last_name'] ?? '';
+    final fullName = json['name'] ?? json['nama'] ?? '$firstName $lastName'.trim();
+
     return SantriModel(
       id: json['id'] ?? 0,
-      nama: json['name'] ?? json['nama'] ?? '',
+      nama: fullName,
       nis: json['nis'] ?? '',
-      kelas: json['kelas']?['name'] ?? json['class_name'] ?? '-',
-      kamar: json['kamar']?['name'] ?? json['room_name'] ?? '-',
-      namaWali: json['wali']?['name'] ?? json['parent_name'] ?? '-',
+      kelas: json['kelas']?['name'] ?? json['program']?['name'] ?? json['class_name'] ?? '-',
+      kamar: json['current_room']?['room_name'] ?? json['kamar']?['name'] ?? json['room_name'] ?? '-',
+      namaWali: json['parents']?['first_name'] ?? json['wali']?['name'] ?? json['parent_name'] ?? '-',
       status: json['status'] ?? 'Aktif',
       photoUrl: json['photo_url'] ?? json['photo'],
     );

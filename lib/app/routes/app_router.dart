@@ -11,6 +11,7 @@ import '../../features/profil/presentation/screens/profil_screen.dart';
 import '../../features/keuangan/presentation/screens/keuangan_screen.dart';
 import '../../features/santri/presentation/screens/santri_screen.dart';
 import '../../features/kamtib/presentation/screens/kamtib_screen.dart';
+import '../../features/akademik/presentation/screens/akademik_screen.dart';
 
 // ─── Route Names ──────────────────────────────────────────────────────────────
 class AppRoutes {
@@ -102,6 +103,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.kamtib,
             builder: (context, state) => const KamtibScreen(),
+          ),
+          // ── Akademik ────────────────────────────────────────────────────
+          GoRoute(
+            path: AppRoutes.akademik,
+            builder: (context, state) => const AkademikScreen(),
           ),
           // ── Profil ──────────────────────────────────────────────────────
           GoRoute(

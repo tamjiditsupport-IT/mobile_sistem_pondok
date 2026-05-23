@@ -17,7 +17,7 @@ class ProfilScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_outlined),
-            onPressed: () {},
+            onPressed: () => _showComingSoonDialog(context, 'Pengaturan Lanjutan'),
           ),
         ],
       ),
@@ -144,12 +144,12 @@ class ProfilScreen extends ConsumerWidget {
                       _MenuRow(
                         icon: Icons.notifications_outlined,
                         label: 'Notifikasi',
-                        onTap: () {},
+                        onTap: () => _showComingSoonDialog(context, 'Notifikasi'),
                       ),
                       _MenuRow(
                         icon: Icons.lock_outline,
                         label: 'Keamanan Akun',
-                        onTap: () {},
+                        onTap: () => _showComingSoonDialog(context, 'Keamanan Akun'),
                       ),
                       _MenuRow(
                         icon: Icons.info_outline,
@@ -271,6 +271,39 @@ class ProfilScreen extends ConsumerWidget {
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: const Text('Tutup', style: TextStyle(fontFamily: 'Poppins')),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showComingSoonDialog(BuildContext context, String featureName) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Icons.construction_rounded, color: AppTheme.primary),
+            const SizedBox(width: 8),
+            Text(
+              'Segera Hadir',
+              style: const TextStyle(
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'Fitur $featureName masih dalam tahap pengembangan dan akan segera tersedia pada pembaruan berikutnya.',
+          style: const TextStyle(fontFamily: 'Poppins', fontSize: 13, height: 1.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Mengerti', style: TextStyle(fontFamily: 'Poppins')),
           ),
         ],
       ),

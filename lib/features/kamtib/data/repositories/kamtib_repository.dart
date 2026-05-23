@@ -6,7 +6,7 @@ class KamtibRepository {
   final Dio _dio = SmptApiClient.instance;
 
   Future<List<PelanggaranModel>> getPelanggaranTerbaru() async {
-    final response = await _dio.get('/kamtib/pelanggaran', queryParameters: {
+    final response = await _dio.get('/main/student-violation', queryParameters: {
       'limit': 20,
     });
     

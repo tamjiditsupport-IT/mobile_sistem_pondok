@@ -42,32 +42,28 @@ class MainScreen extends ConsumerWidget {
   }
 
   List<BottomNavigationBarItem> _buildNavItems(String? role) {
-    final isWali = role?.toLowerCase().contains('wali') ?? false;
-
-    return [
-      const BottomNavigationBarItem(
+    return const [
+      BottomNavigationBarItem(
         icon: Icon(Icons.dashboard_outlined),
         activeIcon: Icon(Icons.dashboard),
         label: 'Dashboard',
       ),
-      const BottomNavigationBarItem(
+      BottomNavigationBarItem(
+        icon: Icon(Icons.people_outline),
+        activeIcon: Icon(Icons.people),
+        label: 'Santri',
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.shield_outlined),
+        activeIcon: Icon(Icons.shield),
+        label: 'Kamtib',
+      ),
+      BottomNavigationBarItem(
         icon: Icon(Icons.account_balance_wallet_outlined),
         activeIcon: Icon(Icons.account_balance_wallet),
         label: 'Keuangan',
       ),
-      if (!isWali)
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.people_outline),
-          activeIcon: Icon(Icons.people),
-          label: 'Santri',
-        ),
-      if (!isWali)
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.shield_outlined),
-          activeIcon: Icon(Icons.shield),
-          label: 'Kamtib',
-        ),
-      const BottomNavigationBarItem(
+      BottomNavigationBarItem(
         icon: Icon(Icons.person_outline),
         activeIcon: Icon(Icons.person),
         label: 'Profil',
@@ -77,27 +73,27 @@ class MainScreen extends ConsumerWidget {
 
   int _getCurrentIndex(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
-    if (location.startsWith(AppRoutes.keuangan)) return 1;
-    if (location.startsWith(AppRoutes.santri)) return 2;
-    if (location.startsWith(AppRoutes.kamtib)) return 3;
+    if (location.startsWith(AppRoutes.santri)) return 1;
+    if (location.startsWith(AppRoutes.kamtib)) return 2;
+    if (location.startsWith(AppRoutes.keuangan)) return 3;
     if (location.startsWith(AppRoutes.profil)) return 4;
     return 0;
   }
 
   void _onNavTap(BuildContext context, int index, String? role) {
-    final isWali = role?.toLowerCase().contains('wali') ?? false;
     switch (index) {
       case 0:
         context.go(AppRoutes.dashboard);
       case 1:
-        context.go(AppRoutes.keuangan);
+        context.go(AppRoutes.santri);
       case 2:
-        if (!isWali) context.go(AppRoutes.santri);
+        context.go(AppRoutes.kamtib);
       case 3:
-        if (!isWali) context.go(AppRoutes.kamtib);
-        else context.go(AppRoutes.profil);
-      default:
+        context.go(AppRoutes.keuangan);
+      case 4:
         context.go(AppRoutes.profil);
+      default:
+        context.go(AppRoutes.dashboard);
     }
   }
 }

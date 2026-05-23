@@ -10,6 +10,7 @@ import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/profil/presentation/screens/profil_screen.dart';
 import '../../features/keuangan/presentation/screens/keuangan_screen.dart';
 import '../../features/santri/presentation/screens/santri_screen.dart';
+import '../../features/santri/presentation/screens/santri_detail_screen.dart';
 import '../../features/kamtib/presentation/screens/kamtib_screen.dart';
 import '../../features/akademik/presentation/screens/akademik_screen.dart';
 
@@ -98,6 +99,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.santri,
             builder: (context, state) => const SantriScreen(),
+          ),
+          GoRoute(
+            path: AppRoutes.santriDetail,
+            builder: (context, state) {
+              final idStr = state.pathParameters['id'] ?? '0';
+              final id = int.tryParse(idStr) ?? 0;
+              return SantriDetailScreen(santriId: id);
+            },
           ),
           // ── Kamtib ──────────────────────────────────────────────────────
           GoRoute(

@@ -143,6 +143,20 @@ class KeuanganNotifier extends StateNotifier<KeuanganState> {
     }
   }
 
+  Future<void> requestTopUp(double amount, {String? description}) async {
+    if (state.account == null) return;
+    try {
+      await _repo.cashTopUp(
+        accountNumber: state.account!.accountNumber,
+        amount: amount,
+        description: description,
+      );
+      await refresh();
+    } catch (e) {
+      state = state.copyWith(error: 'Gagal melakukan request top-up');
+    }
+  }
+
   void setTab(KeuanganTab tab) {
     state = state.copyWith(activeTab: tab);
   }

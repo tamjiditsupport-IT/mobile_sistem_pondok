@@ -11,16 +11,133 @@ class KamtibScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(kamtibProvider);
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF0F4F8),
-      appBar: AppBar(
-        title: const Text('Kamtib & Kedisiplinan'),
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF0F4F8),
+        appBar: AppBar(
+          title: const Text('Kamtib & Kedisiplinan'),
+          bottom: TabBar(
+            labelColor: AppTheme.primary,
+            unselectedLabelColor: AppTheme.textSecondary,
+            indicatorColor: AppTheme.primary,
+            indicatorWeight: 3,
+            labelStyle: const TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+            unselectedLabelStyle: const TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 13,
+            ),
+            tabs: const [
+              Tab(text: 'Pelanggaran'),
+              Tab(text: 'Perizinan'),
+            ],
+          ),
+        ),
+        body: TabBarView(
+          children: [
+            RefreshIndicator(
+              onRefresh: () => ref.read(kamtibProvider.notifier).loadData(),
+              color: AppTheme.primary,
+              child: _buildBody(state, ref),
+            ),
+            _buildPerizinanTab(),
+          ],
+        ),
       ),
-      body: RefreshIndicator(
-        onRefresh: () => ref.read(kamtibProvider.notifier).loadData(),
-        color: AppTheme.primary,
-        child: _buildBody(state, ref),
-      ),
+    );
+  }
+
+  Widget _buildPerizinanTab() {
+    final perizinanList = [
+      {'tanggal': '2025-10-12', 'alasan': 'Sakit', 'status': 'Disetujui'},
+      {'tanggal': '2025-09-01', 'alasan': 'Acara Keluarga', 'status': 'Ditolak'},
+      {'tanggal': '2025-11-20', 'alasan': 'Pulang Kampung', 'status': 'Menunggu'},
+    ];
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: perizinanList.length,
+      itemBuilder: (context, index) {
+        final p = perizinanList[index];
+        final status = p['status']!;
+        Color statusColor = AppTheme.warning;
+        if (status == 'Disetujui') statusColor = AppTheme.success;
+        if (status == 'Ditolak') statusColor = AppTheme.danger;
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppTheme.primary.withValues(alpha: 0.1)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.assignment_turned_in_rounded, color: AppTheme.primary),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      p['alasan']!,
+                      style: const TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      p['tanggal']!,
+                      style: const TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 12,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  status,
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: statusColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

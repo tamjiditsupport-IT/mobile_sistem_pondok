@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../app/themes/app_theme.dart';
 import '../providers/santri_provider.dart';
 import '../../data/models/santri_model.dart';
@@ -146,7 +147,7 @@ class _SantriCard extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(14),
           onTap: () {
-            // Nanti implement navigasi ke detail santri
+            context.push('/home/santri/${santri.id}');
           },
           child: Padding(
             padding: const EdgeInsets.all(16),

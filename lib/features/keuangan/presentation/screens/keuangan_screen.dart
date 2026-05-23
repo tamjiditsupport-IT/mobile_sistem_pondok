@@ -244,8 +244,16 @@ class _KeuanganScreenState extends ConsumerState<KeuanganScreen>
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
+                    final amount = double.tryParse(amountController.text) ?? 0;
+                    if (amount <= 0) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Masukkan nominal yang valid'), backgroundColor: AppTheme.danger),
+                      );
+                      return;
+                    }
                     Navigator.pop(ctx);
+                    await ref.read(keuanganProvider.notifier).requestTopUp(amount);
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Permintaan top up dikirim ke admin'),

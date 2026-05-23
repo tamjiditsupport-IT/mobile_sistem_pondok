@@ -274,7 +274,12 @@ class DashboardScreen extends ConsumerWidget {
                       const SizedBox(height: 24),
                     ],
 
-                    // ── Info Aplikasi ─────────────────────────────────────
+                    // ── Info Aplikasi & Pengumuman ────────────────────────
+                    const SectionHeader(title: 'Pengumuman Terbaru'),
+                    const SizedBox(height: 12),
+                    _buildNewsSection(),
+                    const SizedBox(height: 24),
+
                     _InfoCard(),
                     const SizedBox(height: 80),
                   ],
@@ -374,6 +379,114 @@ class DashboardScreen extends ConsumerWidget {
     );
 
     return actions;
+  }
+
+  Widget _buildNewsSection() {
+    final news = [
+      {
+        'title': 'Libur Idul Adha 1447 H',
+        'date': '10 Dzulhijjah 1447',
+        'desc': 'Pemberitahuan libur kegiatan belajar mengajar selama hari raya Idul Adha dan hari tasyrik.',
+        'color': AppTheme.primary,
+        'icon': Icons.calendar_month_rounded,
+      },
+      {
+        'title': 'Pembayaran Syahriah',
+        'date': 'Maksimal 10 Setiap Bulan',
+        'desc': 'Dimohon kepada seluruh wali santri untuk menyelesaikan administrasi syahriah tepat waktu.',
+        'color': AppTheme.warning,
+        'icon': Icons.notifications_active_rounded,
+      },
+      {
+        'title': 'Kajian Kitab Kuning Terbuka',
+        'date': 'Setiap Ahad Pagi',
+        'desc': 'Kajian rutin kitab Al-Hikam bersama pengasuh di Masjid Jami\' pondok pesantren.',
+        'color': AppTheme.success,
+        'icon': Icons.menu_book_rounded,
+      },
+    ];
+
+    return SizedBox(
+      height: 160,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: news.length,
+        separatorBuilder: (context, index) => const SizedBox(width: 16),
+        itemBuilder: (context, index) {
+          final item = news[index];
+          final color = item['color'] as Color;
+          return Container(
+            width: 280,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: color.withValues(alpha: 0.2)),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(item['icon'] as IconData, size: 20, color: color),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        item['date'] as String,
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: color,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                Text(
+                  item['title'] as String,
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  item['desc'] as String,
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 11,
+                    color: AppTheme.textSecondary,
+                    height: 1.4,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
   }
 }
 

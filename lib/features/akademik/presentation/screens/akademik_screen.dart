@@ -14,7 +14,7 @@ class _AkademikScreenState extends State<AkademikScreen> with SingleTickerProvid
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -45,8 +45,9 @@ class _AkademikScreenState extends State<AkademikScreen> with SingleTickerProvid
             fontSize: 13,
           ),
           tabs: const [
-            Tab(text: 'Jadwal Pelajaran'),
-            Tab(text: 'Nilai & Rapor'),
+            Tab(text: 'Jadwal'),
+            Tab(text: 'Nilai'),
+            Tab(text: 'Absensi'),
           ],
         ),
       ),
@@ -55,6 +56,7 @@ class _AkademikScreenState extends State<AkademikScreen> with SingleTickerProvid
         children: [
           _buildJadwalTab(),
           _buildNilaiTab(),
+          _buildAbsensiTab(),
         ],
       ),
     );
@@ -222,6 +224,97 @@ class _AkademikScreenState extends State<AkademikScreen> with SingleTickerProvid
           ),
         );
       },
+    );
+  }
+
+  Widget _buildAbsensiTab() {
+    final absensi = [
+      {'bulan': 'Januari 2026', 'hadir': 22, 'izin': 1, 'sakit': 0, 'alfa': 0},
+      {'bulan': 'Desember 2025', 'hadir': 20, 'izin': 0, 'sakit': 2, 'alfa': 0},
+      {'bulan': 'November 2025', 'hadir': 21, 'izin': 0, 'sakit': 0, 'alfa': 1},
+    ];
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: absensi.length,
+      itemBuilder: (context, index) {
+        final a = absensi[index];
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppTheme.primary.withValues(alpha: 0.1)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.date_range_rounded, size: 20, color: AppTheme.primary),
+                  const SizedBox(width: 8),
+                  Text(
+                    a['bulan'] as String,
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: Divider(height: 1),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildAbsensiItem('Hadir', a['hadir'] as int, AppTheme.success),
+                  _buildAbsensiItem('Izin', a['izin'] as int, AppTheme.primary),
+                  _buildAbsensiItem('Sakit', a['sakit'] as int, AppTheme.warning),
+                  _buildAbsensiItem('Alfa', a['alfa'] as int, AppTheme.danger),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAbsensiItem(String label, int value, Color color) {
+    return Column(
+      children: [
+        Text(
+          value.toString(),
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: color,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: const TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            color: AppTheme.textSecondary,
+          ),
+        ),
+      ],
     );
   }
 }

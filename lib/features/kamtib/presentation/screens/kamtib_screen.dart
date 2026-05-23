@@ -4,15 +4,52 @@ import '../../../../app/themes/app_theme.dart';
 import '../providers/kamtib_provider.dart';
 import '../../data/models/kamtib_model.dart';
 import '../../../../features/auth/presentation/providers/auth_provider.dart';
+import '../../../../features/santri/presentation/providers/santri_provider.dart';
 
-class KamtibScreen extends ConsumerWidget {
+class KamtibScreen extends ConsumerStatefulWidget {
   const KamtibScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<KamtibScreen> createState() => _KamtibScreenState();
+}
+
+class _KamtibScreenState extends ConsumerState<KamtibScreen> {
+  int? selectedSantriId;
+  bool isInit = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!isInit) {
+      final user = ref.read(authProvider).user;
+      if (user != null && user.isWaliSantri) {
+        // Just trigger load data for all for now, we will filter it when santri list is loaded
+        ref.read(santriProvider.notifier).loadSantri();
+      } else {
+        ref.read(kamtibProvider.notifier).loadData();
+      }
+      isInit = true;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(kamtibProvider);
     final user = ref.watch(authProvider).user;
     final isStaffOrAdmin = user?.isStaff == true || user?.isAdmin == true;
+    final isWaliSantri = user?.isWaliSantri == true;
+    
+    final santriState = ref.watch(santriProvider);
+
+    // Auto-select first child if wali santri
+    if (isWaliSantri && selectedSantriId == null && santriState.santriList.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          selectedSantriId = santriState.santriList.first.id;
+        });
+        ref.read(kamtibProvider.notifier).loadData(studentId: selectedSantriId);
+      });
+    }
 
     return DefaultTabController(
       length: 2,
@@ -23,7 +60,7 @@ class KamtibScreen extends ConsumerWidget {
           elevation: 0,
           iconTheme: const IconThemeData(color: Colors.white),
           title: const Text(
-            'Kamtib & Kedisiplinan',
+            'Kamtib & Perizinan',
             style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600, color: Colors.white),
           ),
           bottom: TabBar(
@@ -52,18 +89,63 @@ class KamtibScreen extends ConsumerWidget {
             ],
           ),
         ),
-        body: TabBarView(
+        body: Column(
           children: [
-            RefreshIndicator(
-              onRefresh: () => ref.read(kamtibProvider.notifier).loadData(),
-              color: AppTheme.primary,
-              child: _buildBody(state, ref),
+            if (isWaliSantri && santriState.santriList.isNotEmpty)
+              Container(
+                color: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
+                  children: [
+                    const Icon(Icons.person_outline, color: AppTheme.primary),
+                    const SizedBox(width: 12),
+                    const Text('Pilih Anak:', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600)),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<int>(
+                          value: selectedSantriId,
+                          isExpanded: true,
+                          items: santriState.santriList.map((s) {
+                            return DropdownMenuItem(
+                              value: s.id,
+                              child: Text(s.nama, style: const TextStyle(fontFamily: 'Poppins')),
+                            );
+                          }).toList(),
+                          onChanged: (val) {
+                            if (val != null) {
+                              setState(() => selectedSantriId = val);
+                              ref.read(kamtibProvider.notifier).loadData(studentId: val);
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            Expanded(
+              child: TabBarView(
+                children: [
+                  RefreshIndicator(
+                    onRefresh: () => ref.read(kamtibProvider.notifier).loadData(studentId: selectedSantriId),
+                    color: AppTheme.primary,
+                    child: _buildBody(state),
+                  ),
+                  _buildPerizinanTab(state, isStaffOrAdmin, context),
+                ],
+              ),
             ),
-            _buildPerizinanTab(state, isStaffOrAdmin, ref, context),
           ],
         ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () => _showAddPerizinanDialog(context, ref),
+        floatingActionButton: (!isWaliSantri && !isStaffOrAdmin) ? null : FloatingActionButton.extended(
+          onPressed: () {
+            if (isWaliSantri && selectedSantriId == null) {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pilih anak terlebih dahulu')));
+              return;
+            }
+            _showAddPerizinanDialog(context, isWaliSantri ? selectedSantriId! : null, santriState.santriList);
+          },
           backgroundColor: AppTheme.primary,
           icon: const Icon(Icons.add, color: Colors.white),
           label: const Text(
@@ -75,9 +157,13 @@ class KamtibScreen extends ConsumerWidget {
     );
   }
 
-  void _showAddPerizinanDialog(BuildContext context, WidgetRef ref) {
+  void _showAddPerizinanDialog(BuildContext context, int? defaultStudentId, List santriList) {
     final reasonController = TextEditingController();
-    
+    int? formStudentId = defaultStudentId;
+    int leaveTypeId = 1; // Default to Pulang
+    DateTime? startDate = DateTime.now();
+    DateTime? endDate = DateTime.now().add(const Duration(days: 1));
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -85,80 +171,187 @@ class KamtibScreen extends ConsumerWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(ctx).viewInsets.bottom,
-            left: 20,
-            right: 20,
-            top: 24,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Ajukan Izin Baru',
-                style: TextStyle(fontFamily: 'Poppins', fontSize: 18, fontWeight: FontWeight.w700),
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(ctx).viewInsets.bottom,
+                left: 20,
+                right: 20,
+                top: 24,
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: reasonController,
-                decoration: InputDecoration(
-                  labelText: 'Alasan Izin / Cuti',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  prefixIcon: const Icon(Icons.edit_note_rounded),
-                ),
-                maxLines: 3,
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    if (reasonController.text.trim().isEmpty) return;
-                    Navigator.pop(ctx);
-                    
-                    try {
-                      await ref.read(kamtibProvider.notifier).submitPerizinan(
-                        studentId: 1, // Ideally we get this from user context
-                        startDate: DateTime.now().toIso8601String().split('T').first,
-                        endDate: DateTime.now().add(const Duration(days: 1)).toIso8601String().split('T').first,
-                        reason: reasonController.text,
-                      );
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Pengajuan izin berhasil dikirim'), backgroundColor: AppTheme.success),
-                        );
-                      }
-                    } catch (e) {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Gagal mengajukan izin'), backgroundColor: AppTheme.danger),
-                        );
-                      }
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primary,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Ajukan Izin Baru',
+                    style: TextStyle(fontFamily: 'Poppins', fontSize: 18, fontWeight: FontWeight.w700),
                   ),
-                  child: const Text(
-                    'Kirim Pengajuan',
-                    style: TextStyle(fontFamily: 'Poppins', fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white),
+                  const SizedBox(height: 16),
+                  
+                  // Jika Admin, mungkin butuh dropdown santri, tapi untuk sekarang kita fokus ke Wali
+                  if (formStudentId == null && santriList.isNotEmpty)
+                    DropdownButtonFormField<int>(
+                      decoration: InputDecoration(
+                        labelText: 'Pilih Santri',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        prefixIcon: const Icon(Icons.person),
+                      ),
+                      value: formStudentId,
+                      items: santriList.map((s) => DropdownMenuItem<int>(
+                        value: s.id,
+                        child: Text(s.nama),
+                      )).toList(),
+                      onChanged: (val) => setModalState(() => formStudentId = val),
+                    ),
+                  if (formStudentId == null && santriList.isNotEmpty)
+                    const SizedBox(height: 12),
+
+                  DropdownButtonFormField<int>(
+                    decoration: InputDecoration(
+                      labelText: 'Jenis Izin',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      prefixIcon: const Icon(Icons.category),
+                    ),
+                    value: leaveTypeId,
+                    items: const [
+                      DropdownMenuItem(value: 1, child: Text('Pulang')),
+                      DropdownMenuItem(value: 2, child: Text('Keluar Pesantren')),
+                      DropdownMenuItem(value: 3, child: Text('Sakit')),
+                      DropdownMenuItem(value: 4, child: Text('Berobat')),
+                      DropdownMenuItem(value: 5, child: Text('Keperluan Keluarga')),
+                      DropdownMenuItem(value: 7, child: Text('Mengikuti Kegiatan')),
+                    ],
+                    onChanged: (val) => setModalState(() => leaveTypeId = val!),
                   ),
-                ),
+                  const SizedBox(height: 12),
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: InkWell(
+                          onTap: () async {
+                            final date = await showDatePicker(
+                              context: context,
+                              initialDate: startDate!,
+                              firstDate: DateTime.now(),
+                              lastDate: DateTime.now().add(const Duration(days: 365)),
+                            );
+                            if (date != null) {
+                              setModalState(() {
+                                startDate = date;
+                                if (endDate!.isBefore(startDate!)) endDate = startDate;
+                              });
+                            }
+                          },
+                          child: InputDecorator(
+                            decoration: InputDecoration(
+                              labelText: 'Tanggal Mulai',
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                              prefixIcon: const Icon(Icons.calendar_today, size: 18),
+                            ),
+                            child: Text('${startDate!.day}/${startDate!.month}/${startDate!.year}'),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: InkWell(
+                          onTap: () async {
+                            final date = await showDatePicker(
+                              context: context,
+                              initialDate: endDate!,
+                              firstDate: startDate!,
+                              lastDate: DateTime.now().add(const Duration(days: 365)),
+                            );
+                            if (date != null) {
+                              setModalState(() => endDate = date);
+                            }
+                          },
+                          child: InputDecorator(
+                            decoration: InputDecoration(
+                              labelText: 'Tanggal Selesai',
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                              prefixIcon: const Icon(Icons.calendar_today, size: 18),
+                            ),
+                            child: Text('${endDate!.day}/${endDate!.month}/${endDate!.year}'),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  TextField(
+                    controller: reasonController,
+                    decoration: InputDecoration(
+                      labelText: 'Alasan Izin / Cuti',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      prefixIcon: const Icon(Icons.edit_note_rounded),
+                    ),
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        if (reasonController.text.trim().isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Alasan harus diisi')));
+                          return;
+                        }
+                        if (formStudentId == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pilih santri terlebih dahulu')));
+                          return;
+                        }
+
+                        Navigator.pop(ctx);
+                        
+                        try {
+                          await ref.read(kamtibProvider.notifier).submitPerizinan(
+                            studentId: formStudentId!,
+                            leaveTypeId: leaveTypeId,
+                            startDate: startDate!.toIso8601String().split('T').first,
+                            endDate: endDate!.toIso8601String().split('T').first,
+                            reason: reasonController.text,
+                          );
+                          if (ctx.mounted) {
+                            ScaffoldMessenger.of(ctx).showSnackBar(
+                              const SnackBar(content: Text('Pengajuan izin berhasil dikirim'), backgroundColor: AppTheme.success),
+                            );
+                          }
+                        } catch (e) {
+                          if (ctx.mounted) {
+                            ScaffoldMessenger.of(ctx).showSnackBar(
+                              SnackBar(content: Text(e.toString().replaceAll('Exception: ', '')), backgroundColor: AppTheme.danger),
+                            );
+                          }
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text(
+                        'Kirim Pengajuan',
+                        style: TextStyle(fontFamily: 'Poppins', fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
               ),
-              const SizedBox(height: 24),
-            ],
-          ),
+            );
+          }
         );
       },
     );
   }
 
-  Widget _buildPerizinanTab(KamtibState state, bool isStaffOrAdmin, WidgetRef ref, BuildContext context) {
-    if (state.perizinanList.isEmpty) {
+  Widget _buildPerizinanTab(KamtibState state, bool isStaffOrAdmin, BuildContext context) {
+    if (state.perizinanList.isEmpty && !state.isLoading) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -173,6 +366,11 @@ class KamtibScreen extends ConsumerWidget {
         ),
       );
     }
+    
+    if (state.isLoading && state.perizinanList.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: state.perizinanList.length,
@@ -180,8 +378,8 @@ class KamtibScreen extends ConsumerWidget {
         final p = state.perizinanList[index];
         final status = p.status;
         Color statusColor = AppTheme.warning;
-        if (status == 'Disetujui') statusColor = AppTheme.success;
-        if (status == 'Ditolak') statusColor = AppTheme.danger;
+        if (status == 'approved' || status == 'completed') statusColor = AppTheme.success;
+        if (status == 'rejected' || status == 'cancelled') statusColor = AppTheme.danger;
 
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
@@ -223,6 +421,8 @@ class KamtibScreen extends ConsumerWidget {
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                           ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 4),
                         Text(
@@ -243,7 +443,7 @@ class KamtibScreen extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      status,
+                      status.toUpperCase(),
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 10,
@@ -270,7 +470,7 @@ class KamtibScreen extends ConsumerWidget {
                           }
                         } catch (e) {
                           if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: AppTheme.danger));
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceAll('Exception: ', '')), backgroundColor: AppTheme.danger));
                           }
                         }
                       },
@@ -290,7 +490,7 @@ class KamtibScreen extends ConsumerWidget {
                           }
                         } catch (e) {
                           if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: AppTheme.danger));
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceAll('Exception: ', '')), backgroundColor: AppTheme.danger));
                           }
                         }
                       },
@@ -306,7 +506,7 @@ class KamtibScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildBody(KamtibState state, WidgetRef ref) {
+  Widget _buildBody(KamtibState state) {
     if (state.isLoading && state.pelanggaranList.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -321,7 +521,7 @@ class KamtibScreen extends ConsumerWidget {
             Text(state.error!, style: const TextStyle(fontFamily: 'Poppins')),
             const SizedBox(height: 12),
             ElevatedButton(
-              onPressed: () => ref.read(kamtibProvider.notifier).loadData(),
+              onPressed: () => ref.read(kamtibProvider.notifier).loadData(studentId: selectedSantriId),
               child: const Text('Coba Lagi'),
             )
           ],

@@ -29,7 +29,7 @@ class SantriModel {
       nama: fullName,
       nis: json['nis'] ?? '',
       kelas: json['kelas']?['name'] ?? json['program']?['name'] ?? json['class_name'] ?? '-',
-      kamar: json['current_room']?['room_name'] ?? json['kamar']?['name'] ?? json['room_name'] ?? '-',
+      kamar: json['current_room']?['hostel_name'] ?? json['hostel']?['name'] ?? json['current_room']?['room_name'] ?? json['room_name'] ?? '-',
       namaWali: json['parents']?['first_name'] ?? json['wali']?['name'] ?? json['parent_name'] ?? '-',
       status: json['status'] ?? 'Aktif',
       photoUrl: json['photo_url'] ?? json['photo'],

@@ -5,11 +5,12 @@ import '../models/kamtib_model.dart';
 class KamtibRepository {
   final Dio _dio = SmptApiClient.instance;
 
-  Future<List<PelanggaranModel>> getPelanggaranTerbaru() async {
+  Future<List<PelanggaranModel>> getPelanggaranTerbaru({int? studentId}) async {
     try {
-      final response = await _dio.get('/main/student-violation', queryParameters: {
-        'limit': 20,
-      });
+      final queryParams = {'limit': 20};
+      if (studentId != null) queryParams['student_id'] = studentId;
+
+      final response = await _dio.get('/main/student-violation', queryParameters: queryParams);
       
       final data = response.data['data']?['data'] ?? response.data['data'] as List? ?? [];
       return data.map<PelanggaranModel>((e) => PelanggaranModel.fromJson(e)).toList();
@@ -18,9 +19,12 @@ class KamtibRepository {
     }
   }
 
-  Future<List<PerizinanModel>> getPerizinan() async {
+  Future<List<PerizinanModel>> getPerizinan({int? studentId}) async {
     try {
-      final response = await _dio.get('/main/student-leave');
+      final queryParams = <String, dynamic>{};
+      if (studentId != null) queryParams['student_id'] = studentId;
+
+      final response = await _dio.get('/main/student-leave', queryParameters: queryParams);
       final data = response.data['data']?['data'] ?? response.data['data'] as List? ?? [];
       return data.map<PerizinanModel>((e) => PerizinanModel.fromJson(e)).toList();
     } catch (_) {
@@ -30,12 +34,14 @@ class KamtibRepository {
 
   Future<void> submitPerizinan({
     required int studentId,
+    required int leaveTypeId,
     required String startDate,
     required String endDate,
     required String reason,
   }) async {
     await _dio.post('/main/student-leave', data: {
       'student_id': studentId,
+      'leave_type_id': leaveTypeId,
       'start_date': startDate,
       'end_date': endDate,
       'reason': reason,

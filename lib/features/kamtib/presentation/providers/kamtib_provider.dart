@@ -37,12 +37,12 @@ class KamtibNotifier extends StateNotifier<KamtibState> {
     loadData();
   }
 
-  Future<void> loadData() async {
+  Future<void> loadData({int? studentId}) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final responses = await Future.wait([
-        _repo.getPelanggaranTerbaru(),
-        _repo.getPerizinan(),
+        _repo.getPelanggaranTerbaru(studentId: studentId),
+        _repo.getPerizinan(studentId: studentId),
       ]);
       
       state = state.copyWith(
@@ -57,6 +57,7 @@ class KamtibNotifier extends StateNotifier<KamtibState> {
 
   Future<void> submitPerizinan({
     required int studentId,
+    required int leaveTypeId,
     required String startDate,
     required String endDate,
     required String reason,
@@ -64,6 +65,7 @@ class KamtibNotifier extends StateNotifier<KamtibState> {
     try {
       await _repo.submitPerizinan(
         studentId: studentId,
+        leaveTypeId: leaveTypeId,
         startDate: startDate,
         endDate: endDate,
         reason: reason,

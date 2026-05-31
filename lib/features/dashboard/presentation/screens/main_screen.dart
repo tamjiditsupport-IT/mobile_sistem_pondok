@@ -13,11 +13,7 @@ class MainScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authProvider);
-    final user = authState.user;
-
-    // Tentukan menu berdasarkan role
-    final navItems = _buildNavItems(user?.role);
+    final navItems = _buildNavItems();
     final currentIndex = _getCurrentIndex(context);
 
     return Scaffold(
@@ -26,7 +22,7 @@ class MainScreen extends ConsumerWidget {
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 20,
               offset: const Offset(0, -5),
             ),
@@ -34,14 +30,14 @@ class MainScreen extends ConsumerWidget {
         ),
         child: BottomNavigationBar(
           currentIndex: currentIndex,
-          onTap: (index) => _onNavTap(context, index, user?.role),
+          onTap: (index) => _onNavTap(context, index),
           items: navItems,
         ),
       ),
     );
   }
 
-  List<BottomNavigationBarItem> _buildNavItems(String? role) {
+  List<BottomNavigationBarItem> _buildNavItems() {
     return const [
       BottomNavigationBarItem(
         icon: Icon(Icons.dashboard_outlined),
@@ -64,6 +60,11 @@ class MainScreen extends ConsumerWidget {
         label: 'Keuangan',
       ),
       BottomNavigationBarItem(
+        icon: Icon(Icons.campaign_outlined),
+        activeIcon: Icon(Icons.campaign),
+        label: 'Informasi',
+      ),
+      BottomNavigationBarItem(
         icon: Icon(Icons.person_outline),
         activeIcon: Icon(Icons.person),
         label: 'Profil',
@@ -76,11 +77,12 @@ class MainScreen extends ConsumerWidget {
     if (location.startsWith(AppRoutes.santri)) return 1;
     if (location.startsWith(AppRoutes.kamtib)) return 2;
     if (location.startsWith(AppRoutes.keuangan)) return 3;
-    if (location.startsWith(AppRoutes.profil)) return 4;
+    if (location.startsWith(AppRoutes.informasi)) return 4;
+    if (location.startsWith(AppRoutes.profil)) return 5;
     return 0;
   }
 
-  void _onNavTap(BuildContext context, int index, String? role) {
+  void _onNavTap(BuildContext context, int index) {
     switch (index) {
       case 0:
         context.go(AppRoutes.dashboard);
@@ -91,6 +93,8 @@ class MainScreen extends ConsumerWidget {
       case 3:
         context.go(AppRoutes.keuangan);
       case 4:
+        context.go(AppRoutes.informasi);
+      case 5:
         context.go(AppRoutes.profil);
       default:
         context.go(AppRoutes.dashboard);

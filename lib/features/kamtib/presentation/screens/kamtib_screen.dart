@@ -15,20 +15,23 @@ class KamtibScreen extends ConsumerStatefulWidget {
 
 class _KamtibScreenState extends ConsumerState<KamtibScreen> {
   int? selectedSantriId;
-  bool isInit = false;
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!isInit) {
-      final user = ref.read(authProvider).user;
-      if (user != null && user.isWaliSantri) {
-        // Just trigger load data for all for now, we will filter it when santri list is loaded
-        ref.read(santriProvider.notifier).loadSantri();
-      } else {
-        ref.read(kamtibProvider.notifier).loadData();
-      }
-      isInit = true;
+  void initState() {
+    super.initState();
+    // Gunakan addPostFrameCallback agar provider sudah siap
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initLoad();
+    });
+  }
+
+  void _initLoad() {
+    if (!mounted) return;
+    final user = ref.read(authProvider).user;
+    if (user != null && user.isWaliSantri) {
+      ref.read(santriProvider.notifier).loadSantri();
+    } else {
+      ref.read(kamtibProvider.notifier).loadData();
     }
   }
 
@@ -38,18 +41,19 @@ class _KamtibScreenState extends ConsumerState<KamtibScreen> {
     final user = ref.watch(authProvider).user;
     final isStaffOrAdmin = user?.isStaff == true || user?.isAdmin == true;
     final isWaliSantri = user?.isWaliSantri == true;
-    
+
     final santriState = ref.watch(santriProvider);
 
-    // Auto-select first child if wali santri
-    if (isWaliSantri && selectedSantriId == null && santriState.santriList.isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+    // Auto-select first child jika wali santri: listen perubahan, bukan di dalam build()
+    ref.listen<dynamic>(santriProvider, (_, next) {
+      final s = next as dynamic;
+      if (isWaliSantri && selectedSantriId == null && s.santriList.isNotEmpty) {
         setState(() {
-          selectedSantriId = santriState.santriList.first.id;
+          selectedSantriId = s.santriList.first.id;
         });
         ref.read(kamtibProvider.notifier).loadData(studentId: selectedSantriId);
-      });
-    }
+      }
+    });
 
     return DefaultTabController(
       length: 2,
@@ -130,21 +134,25 @@ class _KamtibScreenState extends ConsumerState<KamtibScreen> {
                   RefreshIndicator(
                     onRefresh: () => ref.read(kamtibProvider.notifier).loadData(studentId: selectedSantriId),
                     color: AppTheme.primary,
-                    child: _buildBody(state),
+                    child: _buildPelanggaranTab(state),
                   ),
-                  _buildPerizinanTab(state, isStaffOrAdmin, context),
+                  RefreshIndicator(
+                    onRefresh: () => ref.read(kamtibProvider.notifier).loadData(studentId: selectedSantriId),
+                    color: AppTheme.primary,
+                    child: _buildPerizinanTab(state, isStaffOrAdmin, context),
+                  ),
                 ],
               ),
             ),
           ],
         ),
-        floatingActionButton: (!isWaliSantri && !isStaffOrAdmin) ? null : FloatingActionButton.extended(
+        floatingActionButton: (isWaliSantri || isStaffOrAdmin) ? FloatingActionButton.extended(
           onPressed: () {
             if (isWaliSantri && selectedSantriId == null) {
               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pilih anak terlebih dahulu')));
               return;
             }
-            _showAddPerizinanDialog(context, isWaliSantri ? selectedSantriId! : null, santriState.santriList);
+            _showAddPerizinanDialog(context, isWaliSantri ? selectedSantriId! : null, santriState.santriList, state.leaveTypes);
           },
           backgroundColor: AppTheme.primary,
           icon: const Icon(Icons.add, color: Colors.white),
@@ -152,15 +160,17 @@ class _KamtibScreenState extends ConsumerState<KamtibScreen> {
             'Ajukan Izin',
             style: TextStyle(fontFamily: 'Poppins', color: Colors.white, fontWeight: FontWeight.w600),
           ),
-        ),
+        ) : null,
       ),
     );
   }
 
-  void _showAddPerizinanDialog(BuildContext context, int? defaultStudentId, List santriList) {
+  void _showAddPerizinanDialog(BuildContext context, int? defaultStudentId, List santriList, List leaveTypes) {
     final reasonController = TextEditingController();
+    final destinationController = TextEditingController();
+    final contactController = TextEditingController();
     int? formStudentId = defaultStudentId;
-    int leaveTypeId = 1; // Default to Pulang
+    int? leaveTypeId = leaveTypes.isNotEmpty ? leaveTypes.first.id : null;
     DateTime? startDate = DateTime.now();
     DateTime? endDate = DateTime.now().add(const Duration(days: 1));
 
@@ -180,178 +190,208 @@ class _KamtibScreenState extends ConsumerState<KamtibScreen> {
                 right: 20,
                 top: 24,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Ajukan Izin Baru',
-                    style: TextStyle(fontFamily: 'Poppins', fontSize: 18, fontWeight: FontWeight.w700),
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // Jika Admin, mungkin butuh dropdown santri, tapi untuk sekarang kita fokus ke Wali
-                  if (formStudentId == null && santriList.isNotEmpty)
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Ajukan Izin Baru',
+                      style: TextStyle(fontFamily: 'Poppins', fontSize: 18, fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 16),
+
+                    if (formStudentId == null && santriList.isNotEmpty)
+                      DropdownButtonFormField<int>(
+                        decoration: InputDecoration(
+                          labelText: 'Pilih Santri',
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          prefixIcon: const Icon(Icons.person),
+                        ),
+                        value: formStudentId,
+                        items: santriList.map((s) => DropdownMenuItem<int>(
+                          value: s.id,
+                          child: Text(s.nama),
+                        )).toList(),
+                        onChanged: (val) => setModalState(() => formStudentId = val),
+                      ),
+                    if (formStudentId == null && santriList.isNotEmpty)
+                      const SizedBox(height: 12),
+
+                    // Jenis izin dari API (dinamis)
                     DropdownButtonFormField<int>(
                       decoration: InputDecoration(
-                        labelText: 'Pilih Santri',
+                        labelText: 'Jenis Izin',
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        prefixIcon: const Icon(Icons.person),
+                        prefixIcon: const Icon(Icons.category),
                       ),
-                      value: formStudentId,
-                      items: santriList.map((s) => DropdownMenuItem<int>(
-                        value: s.id,
-                        child: Text(s.nama),
+                      value: leaveTypeId,
+                      items: leaveTypes.map((t) => DropdownMenuItem<int>(
+                        value: t.id,
+                        child: Text(t.name, style: const TextStyle(fontFamily: 'Poppins')),
                       )).toList(),
-                      onChanged: (val) => setModalState(() => formStudentId = val),
+                      onChanged: (val) => setModalState(() => leaveTypeId = val),
                     ),
-                  if (formStudentId == null && santriList.isNotEmpty)
                     const SizedBox(height: 12),
 
-                  DropdownButtonFormField<int>(
-                    decoration: InputDecoration(
-                      labelText: 'Jenis Izin',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      prefixIcon: const Icon(Icons.category),
-                    ),
-                    value: leaveTypeId,
-                    items: const [
-                      DropdownMenuItem(value: 1, child: Text('Pulang')),
-                      DropdownMenuItem(value: 2, child: Text('Keluar Pesantren')),
-                      DropdownMenuItem(value: 3, child: Text('Sakit')),
-                      DropdownMenuItem(value: 4, child: Text('Berobat')),
-                      DropdownMenuItem(value: 5, child: Text('Keperluan Keluarga')),
-                      DropdownMenuItem(value: 7, child: Text('Mengikuti Kegiatan')),
-                    ],
-                    onChanged: (val) => setModalState(() => leaveTypeId = val!),
-                  ),
-                  const SizedBox(height: 12),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: InkWell(
-                          onTap: () async {
-                            final date = await showDatePicker(
-                              context: context,
-                              initialDate: startDate!,
-                              firstDate: DateTime.now(),
-                              lastDate: DateTime.now().add(const Duration(days: 365)),
-                            );
-                            if (date != null) {
-                              setModalState(() {
-                                startDate = date;
-                                if (endDate!.isBefore(startDate!)) endDate = startDate;
-                              });
-                            }
-                          },
-                          child: InputDecorator(
-                            decoration: InputDecoration(
-                              labelText: 'Tanggal Mulai',
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                              prefixIcon: const Icon(Icons.calendar_today, size: 18),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: InkWell(
+                            onTap: () async {
+                              final date = await showDatePicker(
+                                context: context,
+                                initialDate: startDate!,
+                                firstDate: DateTime.now(),
+                                lastDate: DateTime.now().add(const Duration(days: 365)),
+                              );
+                              if (date != null) {
+                                setModalState(() {
+                                  startDate = date;
+                                  if (endDate!.isBefore(startDate!)) endDate = startDate;
+                                });
+                              }
+                            },
+                            child: InputDecorator(
+                              decoration: InputDecoration(
+                                labelText: 'Tanggal Mulai',
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                prefixIcon: const Icon(Icons.calendar_today, size: 18),
+                              ),
+                              child: Text('${startDate!.day}/${startDate!.month}/${startDate!.year}'),
                             ),
-                            child: Text('${startDate!.day}/${startDate!.month}/${startDate!.year}'),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: InkWell(
-                          onTap: () async {
-                            final date = await showDatePicker(
-                              context: context,
-                              initialDate: endDate!,
-                              firstDate: startDate!,
-                              lastDate: DateTime.now().add(const Duration(days: 365)),
-                            );
-                            if (date != null) {
-                              setModalState(() => endDate = date);
-                            }
-                          },
-                          child: InputDecorator(
-                            decoration: InputDecoration(
-                              labelText: 'Tanggal Selesai',
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                              prefixIcon: const Icon(Icons.calendar_today, size: 18),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: InkWell(
+                            onTap: () async {
+                              final date = await showDatePicker(
+                                context: context,
+                                initialDate: endDate!,
+                                firstDate: startDate!,
+                                lastDate: DateTime.now().add(const Duration(days: 365)),
+                              );
+                              if (date != null) {
+                                setModalState(() => endDate = date);
+                              }
+                            },
+                            child: InputDecorator(
+                              decoration: InputDecoration(
+                                labelText: 'Tanggal Selesai',
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                prefixIcon: const Icon(Icons.calendar_today, size: 18),
+                              ),
+                              child: Text('${endDate!.day}/${endDate!.month}/${endDate!.year}'),
                             ),
-                            child: Text('${endDate!.day}/${endDate!.month}/${endDate!.year}'),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-
-                  TextField(
-                    controller: reasonController,
-                    decoration: InputDecoration(
-                      labelText: 'Alasan Izin / Cuti',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      prefixIcon: const Icon(Icons.edit_note_rounded),
+                      ],
                     ),
-                    maxLines: 3,
-                  ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        if (reasonController.text.trim().isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Alasan harus diisi')));
-                          return;
-                        }
-                        if (formStudentId == null) {
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pilih santri terlebih dahulu')));
-                          return;
-                        }
+                    const SizedBox(height: 12),
 
-                        Navigator.pop(ctx);
-                        
-                        try {
-                          await ref.read(kamtibProvider.notifier).submitPerizinan(
-                            studentId: formStudentId!,
-                            leaveTypeId: leaveTypeId,
-                            startDate: startDate!.toIso8601String().split('T').first,
-                            endDate: endDate!.toIso8601String().split('T').first,
-                            reason: reasonController.text,
-                          );
-                          if (ctx.mounted) {
-                            ScaffoldMessenger.of(ctx).showSnackBar(
-                              const SnackBar(content: Text('Pengajuan izin berhasil dikirim'), backgroundColor: AppTheme.success),
-                            );
-                          }
-                        } catch (e) {
-                          if (ctx.mounted) {
-                            ScaffoldMessenger.of(ctx).showSnackBar(
-                              SnackBar(content: Text(e.toString().replaceAll('Exception: ', '')), backgroundColor: AppTheme.danger),
-                            );
-                          }
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primary,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    TextField(
+                      controller: reasonController,
+                      decoration: InputDecoration(
+                        labelText: 'Alasan Izin',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        prefixIcon: const Icon(Icons.edit_note_rounded),
                       ),
-                      child: const Text(
-                        'Kirim Pengajuan',
-                        style: TextStyle(fontFamily: 'Poppins', fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white),
+                      maxLines: 3,
+                    ),
+                    const SizedBox(height: 12),
+
+                    TextField(
+                      controller: destinationController,
+                      decoration: InputDecoration(
+                        labelText: 'Tujuan (opsional)',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        prefixIcon: const Icon(Icons.location_on_outlined),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                ],
+                    const SizedBox(height: 12),
+
+                    TextField(
+                      controller: contactController,
+                      keyboardType: TextInputType.phone,
+                      decoration: InputDecoration(
+                        labelText: 'Kontak Wali (opsional)',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        prefixIcon: const Icon(Icons.phone_outlined),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          if (reasonController.text.trim().isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Alasan harus diisi')));
+                            return;
+                          }
+                          if (formStudentId == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pilih santri terlebih dahulu')));
+                            return;
+                          }
+                          if (leaveTypeId == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pilih jenis izin')));
+                            return;
+                          }
+
+                          Navigator.pop(ctx);
+
+                          try {
+                            await ref.read(kamtibProvider.notifier).submitPerizinan(
+                              studentId: formStudentId!,
+                              leaveTypeId: leaveTypeId!,
+                              startDate: startDate!.toIso8601String().split('T').first,
+                              endDate: endDate!.toIso8601String().split('T').first,
+                              reason: reasonController.text,
+                              destination: destinationController.text.isNotEmpty ? destinationController.text : null,
+                              contactPhone: contactController.text.isNotEmpty ? contactController.text : null,
+                            );
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Pengajuan izin berhasil dikirim'), backgroundColor: AppTheme.success),
+                              );
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(e.toString().replaceAll('Exception: ', '')), backgroundColor: AppTheme.danger),
+                              );
+                            }
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primary,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: const Text(
+                          'Kirim Pengajuan',
+                          style: TextStyle(fontFamily: 'Poppins', fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+                ),
               ),
             );
-          }
+          },
         );
       },
     );
   }
 
   Widget _buildPerizinanTab(KamtibState state, bool isStaffOrAdmin, BuildContext context) {
-    if (state.perizinanList.isEmpty && !state.isLoading) {
+    if (state.isLoading && state.perizinanList.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (state.perizinanList.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -365,10 +405,6 @@ class _KamtibScreenState extends ConsumerState<KamtibScreen> {
           ],
         ),
       );
-    }
-    
-    if (state.isLoading && state.perizinanList.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
     }
 
     return ListView.builder(
@@ -426,7 +462,7 @@ class _KamtibScreenState extends ConsumerState<KamtibScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          p.tanggal,
+                          '${p.tanggal} — ${p.tanggalSelesai}',
                           style: const TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 12,
@@ -506,11 +542,11 @@ class _KamtibScreenState extends ConsumerState<KamtibScreen> {
     );
   }
 
-  Widget _buildBody(KamtibState state) {
+  Widget _buildPelanggaranTab(KamtibState state) {
     if (state.isLoading && state.pelanggaranList.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
-    
+
     if (state.error != null && state.pelanggaranList.isEmpty) {
       return Center(
         child: Column(
@@ -518,7 +554,7 @@ class _KamtibScreenState extends ConsumerState<KamtibScreen> {
           children: [
             const Icon(Icons.error_outline, size: 48, color: AppTheme.danger),
             const SizedBox(height: 12),
-            Text(state.error!, style: const TextStyle(fontFamily: 'Poppins')),
+            Text(state.error!, style: const TextStyle(fontFamily: 'Poppins'), textAlign: TextAlign.center),
             const SizedBox(height: 12),
             ElevatedButton(
               onPressed: () => ref.read(kamtibProvider.notifier).loadData(studentId: selectedSantriId),
@@ -528,7 +564,7 @@ class _KamtibScreenState extends ConsumerState<KamtibScreen> {
         ),
       );
     }
-    
+
     if (state.pelanggaranList.isEmpty) {
       return Center(
         child: Column(

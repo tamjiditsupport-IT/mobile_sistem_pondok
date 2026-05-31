@@ -13,6 +13,7 @@ import '../../features/santri/presentation/screens/santri_screen.dart';
 import '../../features/santri/presentation/screens/santri_detail_screen.dart';
 import '../../features/kamtib/presentation/screens/kamtib_screen.dart';
 import '../../features/akademik/presentation/screens/akademik_screen.dart';
+import '../../features/informasi/presentation/screens/informasi_screen.dart';
 
 // ─── Route Names ──────────────────────────────────────────────────────────────
 class AppRoutes {
@@ -28,6 +29,7 @@ class AppRoutes {
   static const String akademik = '/home/akademik';
   static const String kamtib = '/home/kamtib';
   static const String perizinan = '/home/kamtib/perizinan';
+  static const String informasi = '/home/informasi';
   static const String profil = '/home/profil';
 }
 
@@ -65,8 +67,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (isLoading) return null;
       if (!isAuthenticated && !isLoginPage) return AppRoutes.login;
       if (isAuthenticated && isLoginPage) return AppRoutes.home;
-      if (isAuthenticated && state.matchedLocation == AppRoutes.splash)
+      if (isAuthenticated && state.matchedLocation == AppRoutes.splash) {
         return AppRoutes.home;
+      }
       return null;
     },
     routes: [
@@ -117,6 +120,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.akademik,
             builder: (context, state) => const AkademikScreen(),
+          ),
+          // ── Informasi ───────────────────────────────────────────────────
+          GoRoute(
+            path: AppRoutes.informasi,
+            builder: (context, state) => const InformasiScreen(),
           ),
           // ── Profil ──────────────────────────────────────────────────────
           GoRoute(

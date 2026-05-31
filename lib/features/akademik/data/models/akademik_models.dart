@@ -75,3 +75,37 @@ class AbsensiModel {
     );
   }
 }
+
+class AbsensiStatistikModel {
+  final int hadir;
+  final int izin;
+  final int sakit;
+  final int alpha;
+  final int total;
+  final double pctHadir;
+
+  AbsensiStatistikModel({
+    required this.hadir,
+    required this.izin,
+    required this.sakit,
+    required this.alpha,
+    required this.total,
+    required this.pctHadir,
+  });
+
+  factory AbsensiStatistikModel.fromJson(Map<String, dynamic> json) {
+    final hadir = json['hadir'] ?? 0;
+    final izin = json['izin'] ?? 0;
+    final sakit = json['sakit'] ?? 0;
+    final alpha = json['alpha'] ?? json['alfa'] ?? 0;
+    final total = json['total'] ?? (hadir + izin + sakit + alpha);
+    return AbsensiStatistikModel(
+      hadir: hadir,
+      izin: izin,
+      sakit: sakit,
+      alpha: alpha,
+      total: total,
+      pctHadir: (json['percentages']?['hadir'] ?? (total > 0 ? (hadir / total * 100) : 0.0)).toDouble(),
+    );
+  }
+}

@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import '../../../../core/network/smpt_api_client.dart';
+import '../../../../core/errors/app_exception.dart';
 import '../models/akademik_models.dart';
 
 class AkademikRepository {
@@ -10,15 +11,21 @@ class AkademikRepository {
       final response = await _dio.get('/main/class-schedule', queryParameters: {
         if (studentId != null) 'student_id': studentId,
       });
-      final data = response.data['data']?['data'] ?? response.data['data'] as List? ?? [];
-      return data.map<JadwalModel>((e) => JadwalModel.fromJson(e)).toList();
-    } catch (_) {
-      // Fallback dummy for development if endpoint is not fully ready
-      return [
-        JadwalModel(id: 1, hari: 'Senin', mapel: 'Matematika', jamMulai: '07:00', jamSelesai: '08:30', namaGuru: 'Ust. Ahmad'),
-        JadwalModel(id: 2, hari: 'Senin', mapel: 'Fiqih', jamMulai: '08:30', jamSelesai: '10:00', namaGuru: 'Ust. Hasan'),
-        JadwalModel(id: 3, hari: 'Selasa', mapel: 'Bahasa Arab', jamMulai: '07:00', jamSelesai: '08:30', namaGuru: 'Ust. Ali'),
-      ];
+      final raw = response.data;
+      List dataList = [];
+      if (raw is Map) {
+        dataList = raw['data']?['data'] ?? raw['data'] ?? [];
+      } else if (raw is List) {
+        dataList = raw;
+      }
+      return dataList.map<JadwalModel>((e) => JadwalModel.fromJson(e)).toList();
+    } on DioException catch (e) {
+      throw e.error is AppException ? e.error as AppException : NetworkException(
+        e.response?.data?['message']?.toString() ?? 'Gagal memuat jadwal pelajaran',
+        statusCode: e.response?.statusCode,
+      );
+    } catch (e) {
+      throw DataParseException('Gagal membaca data jadwal: ${e.toString()}');
     }
   }
 
@@ -27,14 +34,21 @@ class AkademikRepository {
       final response = await _dio.get('/main/report-card', queryParameters: {
         if (studentId != null) 'student_id': studentId,
       });
-      final data = response.data['data']?['data'] ?? response.data['data'] as List? ?? [];
-      return data.map<NilaiModel>((e) => NilaiModel.fromJson(e)).toList();
-    } catch (_) {
-      return [
-        NilaiModel(id: 1, semester: 'Ganjil 2025/2026', mapel: 'Matematika', nilai: 85),
-        NilaiModel(id: 2, semester: 'Ganjil 2025/2026', mapel: 'Fiqih', nilai: 90),
-        NilaiModel(id: 3, semester: 'Ganjil 2025/2026', mapel: 'Bahasa Arab', nilai: 78),
-      ];
+      final raw = response.data;
+      List dataList = [];
+      if (raw is Map) {
+        dataList = raw['data']?['data'] ?? raw['data'] ?? [];
+      } else if (raw is List) {
+        dataList = raw;
+      }
+      return dataList.map<NilaiModel>((e) => NilaiModel.fromJson(e)).toList();
+    } on DioException catch (e) {
+      throw e.error is AppException ? e.error as AppException : NetworkException(
+        e.response?.data?['message']?.toString() ?? 'Gagal memuat data nilai',
+        statusCode: e.response?.statusCode,
+      );
+    } catch (e) {
+      throw DataParseException('Gagal membaca data nilai: ${e.toString()}');
     }
   }
 
@@ -43,13 +57,41 @@ class AkademikRepository {
       final response = await _dio.get('/main/presence/summary', queryParameters: {
         if (studentId != null) 'student_id': studentId,
       });
-      final data = response.data['data'] as List? ?? [];
-      return data.map<AbsensiModel>((e) => AbsensiModel.fromJson(e)).toList();
-    } catch (_) {
-      return [
-        AbsensiModel(bulan: 'Bulan Ini', hadir: 22, izin: 1, sakit: 0, alfa: 0),
-        AbsensiModel(bulan: 'Bulan Lalu', hadir: 20, izin: 0, sakit: 2, alfa: 0),
-      ];
+      final raw = response.data;
+      List dataList = [];
+      if (raw is Map) {
+        dataList = raw['data'] as List? ?? [];
+      } else if (raw is List) {
+        dataList = raw;
+      }
+      return dataList.map<AbsensiModel>((e) => AbsensiModel.fromJson(e)).toList();
+    } on DioException catch (e) {
+      throw e.error is AppException ? e.error as AppException : NetworkException(
+        e.response?.data?['message']?.toString() ?? 'Gagal memuat data absensi',
+        statusCode: e.response?.statusCode,
+      );
+    } catch (e) {
+      throw DataParseException('Gagal membaca data absensi: ${e.toString()}');
+    }
+  }
+
+  Future<AbsensiStatistikModel?> getAbsensiStatistik({int? studentId}) async {
+    try {
+      final response = await _dio.get('/main/presence/statistics', queryParameters: {
+        if (studentId != null) 'student_id': studentId,
+      });
+      final raw = response.data;
+      if (raw is Map && raw['data'] != null) {
+        return AbsensiStatistikModel.fromJson(raw['data'] as Map<String, dynamic>);
+      }
+      return null;
+    } on DioException catch (e) {
+      throw e.error is AppException ? e.error as AppException : NetworkException(
+        e.response?.data?['message']?.toString() ?? 'Gagal memuat statistik absensi',
+        statusCode: e.response?.statusCode,
+      );
+    } catch (e) {
+      return null; // statistik opsional, boleh null
     }
   }
 }

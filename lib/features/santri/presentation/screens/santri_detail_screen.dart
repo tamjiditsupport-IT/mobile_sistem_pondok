@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/themes/app_theme.dart';
-import '../../data/models/santri_model.dart';
 import '../providers/santri_provider.dart';
 
 class SantriDetailScreen extends ConsumerWidget {

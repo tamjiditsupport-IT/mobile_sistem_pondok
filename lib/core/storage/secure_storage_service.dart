@@ -19,6 +19,17 @@ class SecureStorageService {
     await prefs.remove(AppConstants.tokenKey);
   }
 
+  // ─── Refresh Token ─────────────────────────────────────────────────────────
+  static Future<void> saveRefreshToken(String token) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(AppConstants.refreshTokenKey, token);
+  }
+
+  static Future<String?> getRefreshToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(AppConstants.refreshTokenKey);
+  }
+
   // ─── User Data ────────────────────────────────────────────────────────────
   static Future<void> saveUserData(String json) async {
     final prefs = await SharedPreferences.getInstance();

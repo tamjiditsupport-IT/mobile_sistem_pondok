@@ -23,7 +23,7 @@ class AppLoadingWidget extends StatelessWidget {
         shrinkWrap: true,
         itemCount: itemCount,
         separatorBuilder: (_, __) => const SizedBox(height: 12),
-        itemBuilder: (_, __) => Shimmer.fromColors(
+        itemBuilder: (_, i) => Shimmer.fromColors(
           baseColor: Colors.grey.shade200,
           highlightColor: Colors.grey.shade100,
           child: Container(

@@ -5,58 +5,75 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/data/models/auth_user.dart';
 
 // ─── State ────────────────────────────────────────────────────────────────────
-enum KeuanganTab { transaksi, tagihan }
+enum KeuanganTab { transaksi, tagihan, riwayatTopUp }
 
 class KeuanganState {
   final bool isLoadingAccount;
   final bool isLoadingTransaksi;
   final bool isLoadingTagihan;
+  final bool isLoadingTopUp;
   final BankAccount? account;
   final List<BankTransaction> transaksi;
   final List<PaymentRecord> tagihan;
+  final List<TopUpRecord> topUpHistory;
   final String? error;
   final KeuanganTab activeTab;
   final int currentPage;
   final bool hasMore;
+  final int? selectedMonth;
+  final int? selectedYear;
 
   const KeuanganState({
     this.isLoadingAccount = false,
     this.isLoadingTransaksi = false,
     this.isLoadingTagihan = false,
+    this.isLoadingTopUp = false,
     this.account,
     this.transaksi = const [],
     this.tagihan = const [],
+    this.topUpHistory = const [],
     this.error,
     this.activeTab = KeuanganTab.transaksi,
     this.currentPage = 1,
     this.hasMore = true,
+    this.selectedMonth,
+    this.selectedYear,
   });
 
-  bool get isLoading => isLoadingAccount || isLoadingTransaksi || isLoadingTagihan;
+  bool get isLoading => isLoadingAccount || isLoadingTransaksi || isLoadingTagihan || isLoadingTopUp;
 
   KeuanganState copyWith({
     bool? isLoadingAccount,
     bool? isLoadingTransaksi,
     bool? isLoadingTagihan,
+    bool? isLoadingTopUp,
     BankAccount? account,
     List<BankTransaction>? transaksi,
     List<PaymentRecord>? tagihan,
+    List<TopUpRecord>? topUpHistory,
     String? error,
     KeuanganTab? activeTab,
     int? currentPage,
     bool? hasMore,
+    int? selectedMonth,
+    int? selectedYear,
+    bool clearFilter = false,
   }) {
     return KeuanganState(
       isLoadingAccount: isLoadingAccount ?? this.isLoadingAccount,
       isLoadingTransaksi: isLoadingTransaksi ?? this.isLoadingTransaksi,
       isLoadingTagihan: isLoadingTagihan ?? this.isLoadingTagihan,
+      isLoadingTopUp: isLoadingTopUp ?? this.isLoadingTopUp,
       account: account ?? this.account,
       transaksi: transaksi ?? this.transaksi,
       tagihan: tagihan ?? this.tagihan,
+      topUpHistory: topUpHistory ?? this.topUpHistory,
       error: error,
       activeTab: activeTab ?? this.activeTab,
       currentPage: currentPage ?? this.currentPage,
       hasMore: hasMore ?? this.hasMore,
+      selectedMonth: clearFilter ? null : (selectedMonth ?? this.selectedMonth),
+      selectedYear: clearFilter ? null : (selectedYear ?? this.selectedYear),
     );
   }
 }
@@ -81,6 +98,7 @@ class KeuanganNotifier extends StateNotifier<KeuanganState> {
         await Future.wait([
           _loadTransaksi(acc.accountNumber, reset: true),
           _loadTagihan(acc.accountNumber),
+          _loadTopUpHistory(acc.accountNumber),
         ]);
       } else {
         state = state.copyWith(isLoadingAccount: false, error: 'Rekening tidak ditemukan');
@@ -98,6 +116,7 @@ class KeuanganNotifier extends StateNotifier<KeuanganState> {
       await Future.wait([
         _loadTransaksi(accountNumber, reset: true),
         _loadTagihan(accountNumber),
+        _loadTopUpHistory(accountNumber),
       ]);
     } catch (e) {
       state = state.copyWith(isLoadingAccount: false, error: 'Rekening tidak ditemukan');
@@ -110,7 +129,12 @@ class KeuanganNotifier extends StateNotifier<KeuanganState> {
 
     state = state.copyWith(isLoadingTransaksi: true);
     try {
-      final list = await _repo.getTransactions(accountNumber, page: page);
+      final list = await _repo.getTransactions(
+        accountNumber, 
+        page: page,
+        month: state.selectedMonth,
+        year: state.selectedYear,
+      );
       final newList = reset ? list : [...state.transaksi, ...list];
       state = state.copyWith(
         isLoadingTransaksi: false,
@@ -130,6 +154,16 @@ class KeuanganNotifier extends StateNotifier<KeuanganState> {
       state = state.copyWith(isLoadingTagihan: false, tagihan: list);
     } catch (_) {
       state = state.copyWith(isLoadingTagihan: false);
+    }
+  }
+
+  Future<void> _loadTopUpHistory(String accountNumber) async {
+    state = state.copyWith(isLoadingTopUp: true);
+    try {
+      final list = await _repo.getTopUpHistory(accountNumber);
+      state = state.copyWith(isLoadingTopUp: false, topUpHistory: list);
+    } catch (_) {
+      state = state.copyWith(isLoadingTopUp: false);
     }
   }
 
@@ -164,6 +198,17 @@ class KeuanganNotifier extends StateNotifier<KeuanganState> {
   Future<void> loadMore() async {
     if (state.account != null && state.hasMore && !state.isLoadingTransaksi) {
       await _loadTransaksi(state.account!.accountNumber);
+    }
+  }
+
+  Future<void> setFilter(int? month, int? year) async {
+    state = state.copyWith(
+      selectedMonth: month, 
+      selectedYear: year, 
+      clearFilter: month == null && year == null,
+    );
+    if (state.account != null) {
+      await _loadTransaksi(state.account!.accountNumber, reset: true);
     }
   }
 }

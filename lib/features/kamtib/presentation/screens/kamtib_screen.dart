@@ -208,7 +208,7 @@ class _KamtibScreenState extends ConsumerState<KamtibScreen> {
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                           prefixIcon: const Icon(Icons.person),
                         ),
-                        value: formStudentId,
+                        initialValue: formStudentId,
                         items: santriList.map((s) => DropdownMenuItem<int>(
                           value: s.id,
                           child: Text(s.nama),
@@ -225,7 +225,7 @@ class _KamtibScreenState extends ConsumerState<KamtibScreen> {
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                         prefixIcon: const Icon(Icons.category),
                       ),
-                      value: leaveTypeId,
+                      initialValue: leaveTypeId,
                       items: leaveTypes.map((t) => DropdownMenuItem<int>(
                         value: t.id,
                         child: Text(t.name, style: const TextStyle(fontFamily: 'Poppins')),

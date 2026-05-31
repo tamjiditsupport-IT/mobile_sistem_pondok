@@ -35,10 +35,18 @@ class KeuanganRepository {
     String accountNumber, {
     int page = 1,
     int perPage = 15,
+    int? month,
+    int? year,
   }) async {
+    final Map<String, dynamic> query = {
+      'page': page,
+      'per_page': perPage,
+      if (month != null) 'month': month,
+      if (year != null) 'year': year,
+    };
     final response = await _dio.get(
       '/main/account/$accountNumber/transactions',
-      queryParameters: {'page': page, 'per_page': perPage},
+      queryParameters: query,
     );
     final data = response.data['data'] as List? ?? [];
     return data.map((e) => BankTransaction.fromJson(e)).toList();
@@ -79,5 +87,12 @@ class KeuanganRepository {
       'amount': amount,
       'description': description ?? 'Top-up tunai via mobile',
     });
+  }
+
+  /// Ambil riwayat top-up berdasarkan nomor akun.
+  Future<List<TopUpRecord>> getTopUpHistory(String accountNumber) async {
+    final response = await _dio.get('/main/top-up/account/$accountNumber');
+    final data = response.data['data'] as List? ?? [];
+    return data.map((e) => TopUpRecord.fromJson(e)).toList();
   }
 }

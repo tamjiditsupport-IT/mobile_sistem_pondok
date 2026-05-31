@@ -124,3 +124,40 @@ class PaymentRecord {
   double get remainingAmount => totalAmount - paidAmount;
   bool get isPaid => status.toLowerCase() == 'paid';
 }
+
+/// Model untuk riwayat Top Up dari bank-santri backend
+class TopUpRecord {
+  final int id;
+  final String topUpCode;
+  final double amount;
+  final String status;
+  final String paymentMethod;
+  final DateTime createdAt;
+
+  const TopUpRecord({
+    required this.id,
+    required this.topUpCode,
+    required this.amount,
+    required this.status,
+    required this.paymentMethod,
+    required this.createdAt,
+  });
+
+  factory TopUpRecord.fromJson(Map<String, dynamic> json) {
+    return TopUpRecord(
+      id: json['id'] ?? 0,
+      topUpCode: json['top_up_code'] ?? '',
+      amount: double.tryParse(json['amount']?.toString() ?? '0') ?? 0.0,
+      status: json['status'] ?? 'pending',
+      paymentMethod: json['payment_method'] ?? 'Transfer',
+      createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
+    );
+  }
+
+  String get formattedAmount {
+    return 'Rp ${amount.toStringAsFixed(0).replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (m) => '${m[1]}.',
+    )}';
+  }
+}

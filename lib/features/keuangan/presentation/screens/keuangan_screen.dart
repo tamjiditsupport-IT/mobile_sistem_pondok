@@ -19,7 +19,7 @@ class _KeuanganScreenState extends ConsumerState<KeuanganScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
         ref
@@ -27,7 +27,9 @@ class _KeuanganScreenState extends ConsumerState<KeuanganScreen>
             .setTab(
               _tabController.index == 0
                   ? KeuanganTab.transaksi
-                  : KeuanganTab.tagihan,
+                  : _tabController.index == 1
+                      ? KeuanganTab.tagihan
+                      : KeuanganTab.riwayatTopUp,
             );
       }
     });
@@ -90,6 +92,7 @@ class _KeuanganScreenState extends ConsumerState<KeuanganScreen>
                     tabs: const [
                       Tab(text: 'Riwayat Transaksi'),
                       Tab(text: 'Tagihan'),
+                      Tab(text: 'Riwayat Top Up'),
                     ],
                   ),
                 ),
@@ -148,10 +151,15 @@ class _KeuanganScreenState extends ConsumerState<KeuanganScreen>
         isLoading: state.isLoadingTransaksi,
         hasMore: state.hasMore,
       );
-    } else {
+    } else if (_tabController.index == 1) {
       return _TagihanList(
         tagihan: state.tagihan,
         isLoading: state.isLoadingTagihan,
+      );
+    } else {
+      return _TopUpList(
+        topUpHistory: state.topUpHistory,
+        isLoading: state.isLoadingTopUp,
       );
     }
   }
@@ -948,6 +956,144 @@ class _AmountLabel extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+// ─── Top Up List ─────────────────────────────────────────────────────────────
+class _TopUpList extends StatelessWidget {
+  final List<TopUpRecord> topUpHistory;
+  final bool isLoading;
+
+  const _TopUpList({required this.topUpHistory, required this.isLoading});
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading && topUpHistory.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(40),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+    if (topUpHistory.isEmpty) {
+      return const _EmptyState(
+        icon: Icons.account_balance_wallet_outlined,
+        message: 'Belum ada riwayat top up',
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: topUpHistory.length,
+      itemBuilder: (_, i) => _TopUpCard(record: topUpHistory[i]),
+    );
+  }
+}
+
+class _TopUpCard extends StatelessWidget {
+  final TopUpRecord record;
+  const _TopUpCard({required this.record});
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isSuccess = record.status.toLowerCase() == 'success' || record.status.toLowerCase() == 'completed';
+    final bool isPending = record.status.toLowerCase() == 'pending';
+    final Color statusColor = isSuccess ? AppTheme.success : (isPending ? AppTheme.warning : AppTheme.danger);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: statusColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              Icons.account_balance_wallet_rounded,
+              color: statusColor,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  record.paymentMethod,
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  _formatDate(record.createdAt),
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 10,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                record.formattedAmount,
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textPrimary,
+                ),
+              ),
+              Container(
+                margin: const EdgeInsets.top(4),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  record.status.toUpperCase(),
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                    color: statusColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDate(DateTime dt) {
+    const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+    return '${dt.day} ${months[dt.month - 1]} ${dt.year} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
   }
 }
 

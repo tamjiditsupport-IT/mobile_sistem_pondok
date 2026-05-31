@@ -146,11 +146,7 @@ class _KeuanganScreenState extends ConsumerState<KeuanganScreen>
 
   Widget _buildTabContent(KeuanganState state) {
     if (_tabController.index == 0) {
-      return _TransaksiList(
-        transaksi: state.transaksi,
-        isLoading: state.isLoadingTransaksi,
-        hasMore: state.hasMore,
-      );
+      return _TransaksiList();
     } else if (_tabController.index == 1) {
       return _TagihanList(
         tagihan: state.tagihan,
@@ -406,36 +402,17 @@ class _BalanceHeaderState extends State<_BalanceHeader> {
 }
 
 // ─── Transaksi List ───────────────────────────────────────────────────────────
-class _TransaksiList extends StatelessWidget {
-  final List<BankTransaction> transaksi;
-  final bool isLoading;
-  final bool hasMore;
-
-  const _TransaksiList({
-    required this.transaksi,
-    required this.isLoading,
-    required this.hasMore,
-  });
+class _TransaksiList extends ConsumerWidget {
+  const _TransaksiList();
 
   @override
-  Widget build(BuildContext context) {
-    if (isLoading && transaksi.isEmpty) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(40),
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
-    if (transaksi.isEmpty) {
-      return const _EmptyState(
-        icon: Icons.receipt_long_outlined,
-        message: 'Belum ada transaksi',
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(keuanganProvider);
+    final transaksi = state.transaksi;
+    final isLoading = state.isLoadingTransaksi;
+    final hasMore = state.hasMore;
+    final listWidget = ListView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: transaksi.length + (hasMore ? 1 : 0),
@@ -450,6 +427,95 @@ class _TransaksiList extends StatelessWidget {
         }
         return _TransaksiCard(trx: transaksi[index]);
       },
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _MonthFilter(),
+        if (isLoading && transaksi.isEmpty)
+          const Padding(
+            padding: EdgeInsets.all(40),
+            child: Center(child: CircularProgressIndicator()),
+          )
+        else if (transaksi.isEmpty)
+          const _EmptyState(
+            icon: Icons.receipt_long_outlined,
+            message: 'Belum ada transaksi di bulan ini',
+          )
+        else
+          listWidget,
+      ],
+    );
+  }
+}
+
+class _MonthFilter extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(keuanganProvider);
+    final now = DateTime.now();
+    final months = List.generate(6, (i) {
+      return DateTime(now.year, now.month - i, 1);
+    });
+
+    return SizedBox(
+      height: 56,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        itemCount: months.length + 1,
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            final isSelected = state.selectedMonth == null && state.selectedYear == null;
+            return Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: ChoiceChip(
+                label: const Text('Semua'),
+                selected: isSelected,
+                onSelected: (selected) {
+                  if (selected) {
+                    ref.read(keuanganProvider.notifier).setFilter(null, null);
+                  }
+                },
+                selectedColor: AppTheme.primary,
+                labelStyle: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 12,
+                  color: isSelected ? Colors.white : AppTheme.textPrimary,
+                ),
+                backgroundColor: Colors.white,
+              ),
+            );
+          }
+
+          final monthDate = months[index - 1];
+          final isSelected = state.selectedMonth == monthDate.month && state.selectedYear == monthDate.year;
+          
+          const monthNames = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+          final monthStr = '${monthNames[monthDate.month - 1]} ${monthDate.year}';
+
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: ChoiceChip(
+              label: Text(monthStr),
+              selected: isSelected,
+              onSelected: (selected) {
+                if (selected) {
+                  ref.read(keuanganProvider.notifier).setFilter(monthDate.month, monthDate.year);
+                }
+              },
+              selectedColor: AppTheme.primary,
+              labelStyle: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 12,
+                color: isSelected ? Colors.white : AppTheme.textPrimary,
+              ),
+              backgroundColor: Colors.white,
+            ),
+          );
+        },
+      ),
     );
   }
 }
@@ -1068,7 +1134,7 @@ class _TopUpCard extends StatelessWidget {
                 ),
               ),
               Container(
-                margin: const EdgeInsets.top(4),
+                margin: const EdgeInsets.only(top: 4),
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: statusColor.withValues(alpha: 0.1),
